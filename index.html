@@ -2,14 +2,15 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<title>書体撃ち - Fontfall Pop（v0.9）</title>
+<title>知らんフォント</title>
 <style>
   body { margin:0; background:#111; font-family:sans-serif; color:white; overflow:hidden; }
   canvas { display:block; margin:0 auto; background:#000; touch-action:none; }
   #ui, #startScreen, #clearScreen { position:absolute; top:0; left:0; right:0; bottom:0; display:flex; flex-direction:column; justify-content:center; align-items:center; z-index:20; text-align:center; }
   #startScreen, #clearScreen { background:rgba(0,0,0,0.92); pointer-events:all; }
   button { padding:18px 60px; font-size:28px; background:#ff66aa; color:white; border:none; border-radius:50px; cursor:pointer; box-shadow:0 8px 0 #cc4488; margin:10px; }
-  .howto { max-width:600px; text-align:left; font-size:18px; line-height:1.6; background:rgba(0,0,0,0.6); padding:20px; border-radius:15px; }
+  .howto { max-width:620px; text-align:left; font-size:18px; line-height:1.6; background:rgba(0,0,0,0.6); padding:20px; border-radius:15px; }
+  #score { font-size:52px !important; font-weight:bold; color:#ffff66; text-shadow:0 0 15px #ff0; }
 </style>
 </head>
 <body>
@@ -17,18 +18,18 @@
 <canvas id="game" width="800" height="600"></canvas>
 
 <div id="startScreen">
-  <h1 style="font-size:68px;color:#ff99ee;">書体撃ち</h1>
-  <p style="font-size:26px;">しらんわ！フォント判別ゲーム</p>
+  <h1 style="font-size:78px;color:#ff99ee;margin:0;">知らんフォント</h1>
+  <p style="font-size:28px;margin:10px 0 20px;">フォントマニア向け判別ゲーム</p>
   
   <div class="howto">
     <strong>遊び方</strong><br>
-    ・左右キー（またはマウス/指）でタコを移動<br>
+    ・左右キー or マウス/指でタコを移動<br>
     ・スペースキー or タップで墨を撃つ<br><br>
     <strong>ルール</strong><br>
-    ・画面上部に表示される**課題フォント**（例：游明朝）だけを撃とう！<br>
-    ・間違ったフォントを撃つと減点＆反撃される<br>
-    ・正しいフォントをたくさん撃ってスコアを稼ごう<br>
-    ・一定スコアでクリア → 次のフォントへ（しらんわ！連発）<br>
+    ・上部の<strong>課題フォント</strong>と同じ書体の文字だけを撃とう！<br>
+    ・<span style="color:#ffee44">黄色い文字</span> = 正しいフォント（高得点）<br>
+    ・間違ったフォントを撃つと減点＋1発反撃<br>
+    ・スコアを稼いでクリア → 次のフォントへ！
   </div>
 
   <button onclick="startGame()">▶ ゲームスタート</button>
@@ -36,18 +37,18 @@
 
 <div id="ui" style="display:none; pointer-events:none;">
   <div style="position:absolute;top:15px;left:15px;">レベル <span id="level">1</span></div>
-  <div id="task" style="position:absolute;top:15px;left:50%;transform:translateX(-50%); font-size:56px; font-weight:bold;"></div>
+  <div id="task" style="position:absolute;top:15px;left:50%;transform:translateX(-50%); font-size:58px; font-weight:bold;"></div>
   <div style="position:absolute;top:15px;right:15px;">スコア <span id="score">0</span></div>
 </div>
 
 <div id="clearScreen" style="display:none;">
   <h1 style="color:#ffee44;">クリア！</h1>
-  <p id="clearText" style="font-size:32px;"></p>
+  <p id="clearText" style="font-size:34px;"></p>
   <button onclick="nextLevel()">次のフォントへ →</button>
 </div>
 
 <script>
-// =============== v0.9 説明書き追加・タコ完全版 ===============
+// =============== 知らんフォント v1.1 ===============
 const canvas = document.getElementById('game');
 const ctx = canvas.getContext('2d');
 const W = 800, H = 600;
@@ -68,6 +69,27 @@ function updateTaskDisplay() {
   const el = document.getElementById('task');
   el.style.fontFamily = fonts[currentTaskIndex % fonts.length];
   el.textContent = getTaskName();
+}
+
+// 効果音（Web Audio API）
+const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+function playSound(type) {
+  const osc = audioCtx.createOscillator();
+  const gain = audioCtx.createGain();
+  osc.connect(gain); gain.connect(audioCtx.destination);
+
+  if (type === "shoot") {
+    osc.type = 'sawtooth'; osc.frequency.setValueAtTime(800, audioCtx.currentTime);
+    gain.gain.value = 0.3; gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.15);
+  } else if (type === "hit") {
+    osc.type = 'sine'; osc.frequency.setValueAtTime(1200, audioCtx.currentTime);
+    gain.gain.value = 0.6; gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.25);
+  } else if (type === "miss") {
+    osc.type = 'sawtooth'; osc.frequency.setValueAtTime(400, audioCtx.currentTime);
+    gain.gain.value = 0.4; gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.4);
+  }
+  osc.start(); osc.stop(audioCtx.currentTime + 0.5);
 }
 
 function drawPlayer(x) {
@@ -99,12 +121,14 @@ function createEnemy() {
     x: Math.random()*(W-100)+50, y: -60, char: char,
     font: fonts[fontIndex], size: 36 + Math.random()*26,
     speed: 1.4 + level*0.15, isCorrect: isCorrect,
-    offset: Math.random()*Math.PI*2, waveType: Math.random()<0.35?1:0
+    offset: Math.random()*Math.PI*2, waveType: Math.random()<0.35?1:0,
+    attacked: false
   });
 }
 
 function shoot() {
   bullets.push({x: playerX+30, y: H-85, speed: 14});
+  playSound("shoot");
 }
 
 function startGame() {
@@ -145,7 +169,7 @@ function update() {
   g.addColorStop(0,'#ff99ee'); g.addColorStop(1,'#88ddff');
   ctx.globalAlpha = 0.35; ctx.fillStyle = g; ctx.fillRect(0,0,W,H); ctx.globalAlpha = 1;
 
-  // 敵更新
+  // 敵
   for (let i = enemies.length-1; i >= 0; i--) {
     const e = enemies[i];
     e.y += e.speed;
@@ -171,10 +195,30 @@ function update() {
     for (let j=enemies.length-1; j>=0; j--) {
       const e = enemies[j];
       if (Math.hypot(b.x - e.x, b.y - e.y) < e.size*0.78) {
-        if (e.isCorrect) score += 150 + level*45;
-        else score = Math.max(0, score - 85);
+        if (e.isCorrect) {
+          score += 150 + level*45;
+          playSound("hit");
+        } else {
+          score = Math.max(0, score - 85);
+          playSound("miss");
+          if (!e.attacked) {
+            enemyBullets.push({x: e.x, y: e.y, speed: 6});
+            e.attacked = true;
+          }
+        }
         enemies.splice(j,1); bullets.splice(i,1); break;
       }
+    }
+  }
+
+  // 敵弾
+  for (let i=enemyBullets.length-1; i>=0; i--) {
+    const eb = enemyBullets[i]; eb.y += eb.speed;
+    ctx.fillStyle = '#c00'; ctx.beginPath(); ctx.arc(eb.x, eb.y, 7, 0, Math.PI*2); ctx.fill();
+    if (eb.y > H+30) {enemyBullets.splice(i,1); continue;}
+    if (Math.hypot(eb.x-(playerX+30), eb.y-(H-55)) < 36) {
+      alert("ゲームオーバー！ 最終スコア: " + score);
+      location.reload();
     }
   }
 
