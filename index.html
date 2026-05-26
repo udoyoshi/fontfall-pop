@@ -18,11 +18,10 @@
   .howto { max-width:680px; text-align:left; font-size:17px; line-height:1.6; background:rgba(0,0,0,0.7); padding:20px; border-radius:15px; margin:20px; }
 
   #ui { position:absolute; top:0; left:0; right:0; z-index:50; pointer-events:none; }
-  #level { position:absolute; top:12px; left:20px; font-size:38px; font-weight:bold; color:#ffff66; }
-  #task { position:absolute; top:55px; left:50%; transform:translateX(-50%); font-size:52px; font-weight:bold; text-shadow:0 0 15px #ff0; }
-  #score { position:absolute; top:12px; right:20px; font-size:46px; font-weight:bold; color:#ffff66; text-shadow:0 0 15px #ff0; }
-  #changeTimer { position:absolute; top:105px; left:50%; transform:translateX(-50%); font-size:26px; color:#ffdd66; font-weight:bold; }
-  #missInfo { position:absolute; top:140px; left:50%; transform:translateX(-50%); font-size:28px; color:#ff6666; font-weight:bold; opacity:0; transition:0.4s; }
+  #level { position:absolute; top:15px; left:25px; font-size:42px; font-weight:bold; color:#ffff66; }
+  #task { position:absolute; top:65px; left:50%; transform:translateX(-50%); font-size:56px; font-weight:bold; text-shadow:0 0 20px #ff0; }
+  #score { position:absolute; top:15px; right:25px; font-size:48px; font-weight:bold; color:#ffff66; text-shadow:0 0 15px #ff0; }
+  #missInfo { position:absolute; top:130px; left:50%; transform:translateX(-50%); font-size:32px; color:#ff6666; font-weight:bold; opacity:0; transition:opacity 0.6s; text-shadow:0 0 10px #000; }
 </style>
 </head>
 <body>
@@ -31,15 +30,14 @@
 
 <div id="startScreen">
   <h1 style="font-size:78px;color:#ff99ee;margin:0;">知らんフォント</h1>
-  <p style="font-size:26px;margin:8px 0 20px;">v1.8</p>
+  <p style="font-size:26px;margin:8px 0 20px;">v1.9</p>
   
   <div class="howto">
     <strong>遊び方</strong><br>
     ・左右キー or マウス/指でタコ移動<br>
     ・スペース or タップで墨を撃つ<br><br>
     <strong>ルール</strong><br>
-    ・上部の<strong>課題フォント</strong>と同じ書体の文字を撃とう！<br>
-    ・<span style="color:#ffee44">黄色い文字</span> = 正しいフォント<br>
+    ・上部の課題フォントと同じ書体の文字を撃とう！<br>
     ・正しいフォントをたくさん撃つと次のフォントへ
   </div>
 
@@ -50,7 +48,6 @@
   <div id="level">レベル 1</div>
   <div id="task"></div>
   <div id="score">0</div>
-  <div id="changeTimer"></div>
   <div id="missInfo"></div>
 </div>
 
@@ -61,13 +58,12 @@
 </div>
 
 <script>
-// =============== 知らんフォント v1.8 ===============
+// =============== 知らんフォント v1.9 ===============
 const canvas = document.getElementById('game');
 const ctx = canvas.getContext('2d');
 const W = 800, H = 600;
 
 let score = 0, level = 1, timeLeft = 60;
-let correctNeeded = 12; // 正解撃破数で次のフォント
 let correctCount = 0;
 let playerX = W/2 - 30;
 let bullets = [], enemies = [], enemyBullets = [];
@@ -77,6 +73,27 @@ let currentTaskIndex = 0;
 const fonts = ["'Noto Serif JP', serif","'Noto Sans JP', sans-serif","'Kosugi Maru', sans-serif","'Yuji Syuku', cursive","'M PLUS Rounded 1c', sans-serif","serif"];
 const taskNames = ["游明朝","源ノ角ゴシック","筑紫明朝","秀英明朝","AXIS Font","小塚明朝","リュウミン","IPA明朝"];
 const chars = "あいうえおかきくけこさしすせそたちつてとなにぬねのはひふへほまみむめもやゆよらりるれろわんアイウエオカキクケコABCDEFGHIJKLMNOPQRSTUVWXYZ!?".split("");
+
+const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+function playSound(type) {
+  const osc = audioCtx.createOscillator();
+  const gain = audioCtx.createGain();
+  osc.connect(gain); gain.connect(audioCtx.destination);
+  
+  if (type === "shoot") {
+    osc.type = 'sawtooth'; osc.frequency.value = 850;
+    gain.gain.value = 0.25;
+  } else if (type === "hit") {        // 正解音（爽快）
+    osc.type = 'sine'; osc.frequency.value = 1600;
+    gain.gain.value = 0.6;
+  } else if (type === "miss") {       // 間違い音
+    osc.type = 'sawtooth'; osc.frequency.value = 320;
+    gain.gain.value = 0.4;
+  }
+  gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.35);
+  osc.start(); osc.stop(audioCtx.currentTime + 0.5);
+}
 
 function getTaskName() { return taskNames[currentTaskIndex % taskNames.length]; }
 
@@ -120,7 +137,10 @@ function createEnemy() {
   });
 }
 
-function shoot() { bullets.push({x: playerX+30, y: H-85, speed: 14}); }
+function shoot() {
+  bullets.push({x: playerX+30, y: H-85, speed: 14});
+  playSound("shoot");
+}
 
 function startGame() {
   document.getElementById('startScreen').style.display = 'none';
@@ -137,7 +157,7 @@ function resetGame() {
 }
 
 function checkLevelUp() {
-  if (correctCount >= 10) {  // 10個正解で次のフォント
+  if (correctCount >= 12) {   // 12個正解で次のフォント
     currentTaskIndex = (currentTaskIndex + 1) % taskNames.length;
     correctCount = 0;
     updateTaskDisplay();
@@ -188,12 +208,16 @@ function update() {
         if (e.isCorrect) {
           score += 150 + level*45;
           correctCount++;
+          playSound("hit");
           checkLevelUp();
         } else {
           score = Math.max(0, score - 85);
-          document.getElementById('missInfo').textContent = `× ${e.font.split("'")[1] || '誤フォント'}`;
-          document.getElementById('missInfo').style.opacity = 1;
-          setTimeout(() => document.getElementById('missInfo').style.opacity = 0, 1200);
+          playSound("miss");
+          // 撃ち落としたフォント名を表示
+          const missEl = document.getElementById('missInfo');
+          missEl.textContent = `× ${taskNames[fonts.indexOf(e.font)] || '誤フォント'}`;
+          missEl.style.opacity = 1;
+          setTimeout(() => missEl.style.opacity = 0, 1400);
         }
         enemies.splice(j,1); bullets.splice(i,1); break;
       }
