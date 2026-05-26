@@ -2,13 +2,14 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<title>書体撃ち - Fontfall Pop（v0.8）</title>
+<title>書体撃ち - Fontfall Pop（v0.9）</title>
 <style>
   body { margin:0; background:#111; font-family:sans-serif; color:white; overflow:hidden; }
   canvas { display:block; margin:0 auto; background:#000; touch-action:none; }
   #ui, #startScreen, #clearScreen { position:absolute; top:0; left:0; right:0; bottom:0; display:flex; flex-direction:column; justify-content:center; align-items:center; z-index:20; text-align:center; }
   #startScreen, #clearScreen { background:rgba(0,0,0,0.92); pointer-events:all; }
-  button { padding:18px 60px; font-size:28px; background:#ff66aa; color:white; border:none; border-radius:50px; cursor:pointer; box-shadow:0 8px 0 #cc4488; }
+  button { padding:18px 60px; font-size:28px; background:#ff66aa; color:white; border:none; border-radius:50px; cursor:pointer; box-shadow:0 8px 0 #cc4488; margin:10px; }
+  .howto { max-width:600px; text-align:left; font-size:18px; line-height:1.6; background:rgba(0,0,0,0.6); padding:20px; border-radius:15px; }
 </style>
 </head>
 <body>
@@ -17,8 +18,20 @@
 
 <div id="startScreen">
   <h1 style="font-size:68px;color:#ff99ee;">書体撃ち</h1>
-  <p style="font-size:26px;">しらんわ！フォント判別</p>
-  <button onclick="startGame()">▶ スタート</button>
+  <p style="font-size:26px;">しらんわ！フォント判別ゲーム</p>
+  
+  <div class="howto">
+    <strong>遊び方</strong><br>
+    ・左右キー（またはマウス/指）でタコを移動<br>
+    ・スペースキー or タップで墨を撃つ<br><br>
+    <strong>ルール</strong><br>
+    ・画面上部に表示される**課題フォント**（例：游明朝）だけを撃とう！<br>
+    ・間違ったフォントを撃つと減点＆反撃される<br>
+    ・正しいフォントをたくさん撃ってスコアを稼ごう<br>
+    ・一定スコアでクリア → 次のフォントへ（しらんわ！連発）<br>
+  </div>
+
+  <button onclick="startGame()">▶ ゲームスタート</button>
 </div>
 
 <div id="ui" style="display:none; pointer-events:none;">
@@ -34,7 +47,7 @@
 </div>
 
 <script>
-// =============== v0.8 タコ完全復活版 ===============
+// =============== v0.9 説明書き追加・タコ完全版 ===============
 const canvas = document.getElementById('game');
 const ctx = canvas.getContext('2d');
 const W = 800, H = 600;
@@ -57,28 +70,22 @@ function updateTaskDisplay() {
   el.textContent = getTaskName();
 }
 
-// ===== タコ自機 =====
 function drawPlayer(x) {
   ctx.save();
   ctx.translate(x + 30, H - 60);
   ctx.fillStyle = '#ff66aa';
   ctx.beginPath(); ctx.ellipse(0, 0, 28, 22, 0, 0, Math.PI*2); ctx.fill();
-  
-  // 目
   ctx.fillStyle = '#fff';
   ctx.beginPath(); ctx.arc(-10, -8, 7, 0, Math.PI*2); ctx.fill();
   ctx.beginPath(); ctx.arc(10, -8, 7, 0, Math.PI*2); ctx.fill();
   ctx.fillStyle = '#000';
   ctx.beginPath(); ctx.arc(-10, -8, 4, 0, Math.PI*2); ctx.fill();
   ctx.beginPath(); ctx.arc(10, -8, 4, 0, Math.PI*2); ctx.fill();
-  
-  // 触手
-  ctx.strokeStyle = '#ff4488';
-  ctx.lineWidth = 6;
+  ctx.strokeStyle = '#ff4488'; ctx.lineWidth = 6;
   for (let i = -2; i <= 2; i++) {
     ctx.beginPath();
     ctx.moveTo(i*8, 15);
-    ctx.quadraticCurveTo(i*12, 35, i*5 + Math.sin(Date.now()/200)*3, 48);
+    ctx.quadraticCurveTo(i*12, 35, i*5 + Math.sin(Date.now()/180)*3, 48);
     ctx.stroke();
   }
   ctx.restore();
@@ -138,7 +145,7 @@ function update() {
   g.addColorStop(0,'#ff99ee'); g.addColorStop(1,'#88ddff');
   ctx.globalAlpha = 0.35; ctx.fillStyle = g; ctx.fillRect(0,0,W,H); ctx.globalAlpha = 1;
 
-  // 敵
+  // 敵更新
   for (let i = enemies.length-1; i >= 0; i--) {
     const e = enemies[i];
     e.y += e.speed;
@@ -157,10 +164,8 @@ function update() {
 
   // 自弾
   for (let i=bullets.length-1; i>=0; i--) {
-    const b = bullets[i];
-    b.y -= b.speed;
-    ctx.fillStyle = '#222';
-    ctx.beginPath(); ctx.arc(b.x, b.y, 9, 0, Math.PI*2); ctx.fill();
+    const b = bullets[i]; b.y -= b.speed;
+    ctx.fillStyle = '#222'; ctx.beginPath(); ctx.arc(b.x, b.y, 9, 0, Math.PI*2); ctx.fill();
     if (b.y < -30) {bullets.splice(i,1); continue;}
 
     for (let j=enemies.length-1; j>=0; j--) {
@@ -184,7 +189,7 @@ function update() {
 function loop() { update(); requestAnimationFrame(loop); }
 loop();
 
-// コントロール（タコ操作）
+// コントロール
 window.addEventListener('keydown', e => {
   if (!gameRunning) return;
   if (e.key === 'ArrowLeft' || e.key === 'a') playerX -= 35;
