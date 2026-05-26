@@ -29,17 +29,16 @@
 
 <div id="startScreen">
   <h1 style="font-size:78px;color:#ff99ee;margin:0;">知らんフォント</h1>
-  <p style="font-size:26px;margin:8px 0 20px;">v1.5</p>
+  <p style="font-size:26px;margin:8px 0 20px;">v1.6</p>
   
   <div class="howto">
     <strong>遊び方</strong><br>
     ・左右キー or マウス/指でタコ移動<br>
     ・スペース or タップで墨を撃つ<br><br>
     <strong>ルール</strong><br>
-    ・上部の<strong>課題フォント</strong>と同じ書体の文字だけを撃とう！<br>
-    ・<span style="color:#ffee44">黄色い文字</span> = 正しいフォント（課題フォントと同じ書体）<br>
-    ・間違ったフォントを撃つと減点＋1発反撃<br>
-    ・30秒で高得点を目指せ！
+    ・上部の<strong>課題フォント</strong>と同じ書体の文字を撃とう！<br>
+    ・<span style="color:#ffee44">黄色い文字</span> = 正しいフォント<br>
+    ・60秒間、フォントが途中で変わります
   </div>
 
   <button onclick="startGame()">▶ ゲームスタート</button>
@@ -52,18 +51,18 @@
 </div>
 
 <div id="clearScreen" style="display:none;">
-  <h1 style="color:#ffee44;">クリア！</h1>
+  <h1 style="color:#ffee44;">タイムアップ！</h1>
   <p id="clearText" style="font-size:34px;"></p>
-  <button onclick="nextLevel()">次のフォントへ →</button>
+  <button onclick="restartGame()">タイトルに戻る</button>
 </div>
 
 <script>
-// =============== 知らんフォント v1.5 ===============
+// =============== 知らんフォント v1.6 ===============
 const canvas = document.getElementById('game');
 const ctx = canvas.getContext('2d');
 const W = 800, H = 600;
 
-let score = 0, level = 1, timeLeft = 30;
+let score = 0, level = 1, timeLeft = 60;
 let playerX = W/2 - 30;
 let bullets = [], enemies = [], enemyBullets = [];
 let gameRunning = false;
@@ -72,6 +71,25 @@ let currentTaskIndex = 0;
 const fonts = ["'Noto Serif JP', serif","'Noto Sans JP', sans-serif","'Kosugi Maru', sans-serif","'Yuji Syuku', cursive","'M PLUS Rounded 1c', sans-serif","serif"];
 const taskNames = ["游明朝","源ノ角ゴシック","筑紫明朝","秀英明朝","AXIS Font","小塚明朝","リュウミン","IPA明朝"];
 const chars = "あいうえおかきくけこさしすせそたちつてとなにぬねのはひふへほまみむめもやゆよらりるれろわんアイウエオカキクケコABCDEFGHIJKLMNOPQRSTUVWXYZ!?".split("");
+
+const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+function playSound(type) {
+  const osc = audioCtx.createOscillator();
+  const gain = audioCtx.createGain();
+  osc.connect(gain); gain.connect(audioCtx.destination);
+  if (type === "shoot") {
+    osc.type = 'sawtooth'; osc.frequency.value = 900; gain.gain.value = 0.3;
+    gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.12);
+  } else if (type === "hit") {
+    osc.type = 'sine'; osc.frequency.value = 1400; gain.gain.value = 0.5;
+    gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.25);
+  } else if (type === "miss") {
+    osc.type = 'sawtooth'; osc.frequency.value = 350; gain.gain.value = 0.4;
+    gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.35);
+  }
+  osc.start(); osc.stop(audioCtx.currentTime + 0.5);
+}
 
 function getTaskName() { return taskNames[currentTaskIndex % taskNames.length]; }
 
@@ -109,13 +127,16 @@ function createEnemy() {
   enemies.push({
     x: Math.random()*(W-100)+50, y: -60, char: char,
     font: fonts[fontIndex], size: 36 + Math.random()*26,
-    speed: 1.4 + level*0.15, isCorrect: isCorrect,
-    offset: Math.random()*Math.PI*2, waveType: Math.random()<0.35?1:0,
+    speed: 1.35 + level*0.12, isCorrect: isCorrect,
+    offset: Math.random()*Math.PI*2, waveType: Math.random()<0.4?1:0,
     attacked: false
   });
 }
 
-function shoot() { bullets.push({x: playerX+30, y: H-85, speed: 14}); }
+function shoot() {
+  bullets.push({x: playerX+30, y: H-85, speed: 14});
+  playSound("shoot");
+}
 
 function startGame() {
   document.getElementById('startScreen').style.display = 'none';
@@ -125,26 +146,23 @@ function startGame() {
 }
 
 function resetGame() {
-  score = 0; timeLeft = 30; enemies = []; bullets = []; enemyBullets = [];
+  score = 0; timeLeft = 60; enemies = []; bullets = []; enemyBullets = [];
   playerX = W/2 - 30;
   updateTaskDisplay();
 }
 
-function checkClear() {
-  if (score >= 600 + level * 300) {
+function checkTimeUp() {
+  if (timeLeft <= 0) {
     gameRunning = false;
-    document.getElementById('clearText').innerHTML = `${getTaskName()} クリア！<br>スコア ${score}`;
+    document.getElementById('clearText').innerHTML = `タイムアップ！<br>最終スコア ${score}`;
     document.getElementById('clearScreen').style.display = 'flex';
   }
 }
 
-function nextLevel() {
+function restartGame() {
   document.getElementById('clearScreen').style.display = 'none';
-  currentTaskIndex++;
-  level++;
-  document.getElementById('level').textContent = `レベル ${level}`;
-  resetGame();
-  gameRunning = true;
+  document.getElementById('ui').style.display = 'none';
+  document.getElementById('startScreen').style.display = 'flex';
 }
 
 function update() {
@@ -155,15 +173,16 @@ function update() {
   g.addColorStop(0,'#ff99ee'); g.addColorStop(1,'#88ddff');
   ctx.globalAlpha = 0.35; ctx.fillStyle = g; ctx.fillRect(0,0,W,H); ctx.globalAlpha = 1;
 
-  if (Math.random() < 0.045) timeLeft--;
-  if (timeLeft <= 0) {
-    alert("タイムアップ！ 最終スコア: " + score);
-    document.getElementById('ui').style.display = 'none';
-    document.getElementById('startScreen').style.display = 'flex';
-    return;
+  if (Math.random() < 0.04) timeLeft--;
+  if (timeLeft <= 0) checkTimeUp();
+
+  // ランダムにフォント変更（10〜15秒ごとに）
+  if (Math.random() < 0.008) {
+    currentTaskIndex = Math.floor(Math.random() * taskNames.length);
+    updateTaskDisplay();
   }
 
-  // 敵更新（省略）
+  // 敵
   for (let i = enemies.length-1; i >= 0; i--) {
     const e = enemies[i];
     e.y += e.speed;
@@ -180,7 +199,7 @@ function update() {
     if (e.y > H + 70) enemies.splice(i,1);
   }
 
-  // 自弾（省略）
+  // 自弾
   for (let i=bullets.length-1; i>=0; i--) {
     const b = bullets[i]; b.y -= b.speed;
     ctx.fillStyle = '#222'; ctx.beginPath(); ctx.arc(b.x, b.y, 9, 0, Math.PI*2); ctx.fill();
@@ -189,8 +208,17 @@ function update() {
     for (let j=enemies.length-1; j>=0; j--) {
       const e = enemies[j];
       if (Math.hypot(b.x - e.x, b.y - e.y) < e.size*0.78) {
-        if (e.isCorrect) score += 150 + level*45;
-        else score = Math.max(0, score - 85);
+        if (e.isCorrect) {
+          score += 150 + level*45;
+          playSound("hit");
+        } else {
+          score = Math.max(0, score - 85);
+          playSound("miss");
+          if (!e.attacked) {
+            enemyBullets.push({x: e.x, y: e.y, speed: 6});
+            e.attacked = true;
+          }
+        }
         enemies.splice(j,1); bullets.splice(i,1); break;
       }
     }
@@ -200,8 +228,8 @@ function update() {
   document.getElementById('score').textContent = score;
   document.getElementById('level').textContent = `レベル ${level}`;
 
-  if (enemies.length < 8 && Math.random() < 0.25) createEnemy();
-  checkClear();
+  if (enemies.length < 8 && Math.random() < 0.28) createEnemy();
+  checkTimeUp();
 }
 
 function loop() { update(); requestAnimationFrame(loop); }
