@@ -6,45 +6,59 @@
 <style>
   body { margin:0; background:#111; font-family:sans-serif; color:white; overflow:hidden; }
   canvas { display:block; margin:0 auto; background:#000; touch-action:none; }
-  #ui, #startScreen, #clearScreen { position:absolute; top:0; left:0; right:0; bottom:0; display:flex; flex-direction:column; justify-content:center; align-items:center; z-index:20; text-align:center; }
-  #startScreen, #clearScreen { background:rgba(0,0,0,0.92); pointer-events:all; }
-  button { padding:18px 60px; font-size:28px; background:#ff66aa; color:white; border:none; border-radius:50px; cursor:pointer; box-shadow:0 8px 0 #cc4488; margin:10px; }
-  .howto { max-width:680px; text-align:left; font-size:17.5px; line-height:1.6; background:rgba(0,0,0,0.7); padding:20px; border-radius:15px; }
-  #score, #level { font-size:46px; font-weight:bold; color:#ffff66; text-shadow:0 0 15px #ff0; }
+  
+  #startScreen, #clearScreen { 
+    position:absolute; top:0; left:0; right:0; bottom:0; 
+    display:flex; flex-direction:column; justify-content:center; align-items:center; 
+    z-index:100; text-align:center; background:rgba(0,0,0,0.95); pointer-events:all;
+  }
+  button { 
+    padding:20px 70px; font-size:30px; background:#ff66aa; color:white; 
+    border:none; border-radius:50px; cursor:pointer; box-shadow:0 10px 0 #cc4488; 
+    margin-top:20px; pointer-events:all;
+  }
+  button:active { transform:translateY(6px); box-shadow:0 4px 0 #cc4488; }
+
+  .howto { max-width:680px; text-align:left; font-size:17.5px; line-height:1.6; 
+    background:rgba(0,0,0,0.7); padding:20px; border-radius:15px; margin:20px; }
+
+  #ui { position:absolute; top:0; left:0; right:0; z-index:50; pointer-events:none; }
+  #level, #score { font-size:46px; font-weight:bold; color:#ffff66; text-shadow:0 0 15px #ff0; }
   #level { position:absolute; top:15px; left:50%; transform:translateX(-50%); }
-  #info { position:absolute; bottom:12px; right:12px; font-size:13px; background:rgba(0,0,0,0.6); padding:8px 12px; border-radius:8px; max-width:220px; line-height:1.4; }
+  #score { position:absolute; top:15px; right:25px; }
+  #task { position:absolute; top:15px; left:50%; transform:translateX(-50%); font-size:58px; font-weight:bold; }
 </style>
 </head>
 <body>
 
 <canvas id="game" width="800" height="600"></canvas>
 
+<!-- スタート画面 -->
 <div id="startScreen">
   <h1 style="font-size:78px;color:#ff99ee;margin:0;">知らんフォント</h1>
-  <p style="font-size:26px;margin:8px 0 20px;">フォントマニア向け判別ゲーム</p>
-  <p style="color:#aaa; margin-bottom:20px;">v1.3</p>
+  <p style="font-size:26px;margin:8px 0 10px;">v1.4</p>
   
   <div class="howto">
     <strong>遊び方</strong><br>
-    ・左右キー or マウス/指でタコを移動<br>
-    ・スペースキー or タップで墨を撃つ<br><br>
+    ・左右キー or マウス/指でタコ移動<br>
+    ・スペース or タップで墨を撃つ<br><br>
     <strong>ルール</strong><br>
     ・上部の<strong>課題フォント</strong>と同じ書体の文字を撃とう！<br>
     ・<span style="color:#ffee44">黄色い文字</span> = 正しいフォント（高得点）<br>
-    ・間違ったフォントを撃つと減点＋1発反撃<br>
     ・20秒で高得点を目指せ！
   </div>
 
   <button onclick="startGame()">▶ ゲームスタート</button>
 </div>
 
-<div id="ui" style="display:none; pointer-events:none;">
+<!-- ゲームUI -->
+<div id="ui" style="display:none;">
   <div id="level">レベル 1</div>
-  <div id="task" style="position:absolute;top:15px;left:50%;transform:translateX(-50%); font-size:58px; font-weight:bold;"></div>
-  <div id="score" style="position:absolute;top:15px;right:20px;">0</div>
-  <div id="info"></div>
+  <div id="task"></div>
+  <div id="score">0</div>
 </div>
 
+<!-- クリア画面 -->
 <div id="clearScreen" style="display:none;">
   <h1 style="color:#ffee44;">クリア！</h1>
   <p id="clearText" style="font-size:34px;"></p>
@@ -52,7 +66,7 @@
 </div>
 
 <script>
-// =============== 知らんフォント v1.3 ===============
+// =============== 知らんフォント v1.4 ===============
 const canvas = document.getElementById('game');
 const ctx = canvas.getContext('2d');
 const W = 800, H = 600;
@@ -85,4 +99,136 @@ function drawPlayer(x) {
   ctx.beginPath(); ctx.arc(10, -8, 7, 0, Math.PI*2); ctx.fill();
   ctx.fillStyle = '#000';
   ctx.beginPath(); ctx.arc(-10, -8, 4, 0, Math.PI*2); ctx.fill();
-  ctx.beginPath(); ctx.arc(10, -8
+  ctx.beginPath(); ctx.arc(10, -8, 4, 0, Math.PI*2); ctx.fill();
+  ctx.strokeStyle = '#ff4488'; ctx.lineWidth = 6;
+  for (let i = -2; i <= 2; i++) {
+    ctx.beginPath();
+    ctx.moveTo(i*8, 15);
+    ctx.quadraticCurveTo(i*12, 35, i*5 + Math.sin(Date.now()/180)*3, 48);
+    ctx.stroke();
+  }
+  ctx.restore();
+}
+
+function createEnemy() {
+  const char = chars[Math.floor(Math.random()*chars.length)];
+  const fontIndex = Math.floor(Math.random()*fonts.length);
+  const isCorrect = fontIndex === (currentTaskIndex % fonts.length);
+  enemies.push({
+    x: Math.random()*(W-100)+50, y: -60, char: char,
+    font: fonts[fontIndex], size: 36 + Math.random()*26,
+    speed: 1.4 + level*0.15, isCorrect: isCorrect,
+    offset: Math.random()*Math.PI*2, waveType: Math.random()<0.35?1:0,
+    attacked: false
+  });
+}
+
+function shoot() { bullets.push({x: playerX+30, y: H-85, speed: 14}); }
+
+function startGame() {
+  document.getElementById('startScreen').style.display = 'none';
+  document.getElementById('ui').style.display = 'block';
+  resetGame();
+  gameRunning = true;
+}
+
+function resetGame() {
+  score = 0; timeLeft = 20; enemies = []; bullets = []; enemyBullets = [];
+  playerX = W/2 - 30;
+  updateTaskDisplay();
+}
+
+function checkClear() {
+  if (score >= 600 + level * 300) {
+    gameRunning = false;
+    document.getElementById('clearText').innerHTML = `${getTaskName()} クリア！<br>スコア ${score}`;
+    document.getElementById('clearScreen').style.display = 'flex';
+  }
+}
+
+function nextLevel() {
+  document.getElementById('clearScreen').style.display = 'none';
+  currentTaskIndex++;
+  level++;
+  document.getElementById('level').textContent = `レベル ${level}`;
+  resetGame();
+  gameRunning = true;
+}
+
+function update() {
+  if (!gameRunning) return;
+
+  ctx.fillStyle = '#fff0e0'; ctx.fillRect(0,0,W,H);
+  const g = ctx.createLinearGradient(0,0,0,H);
+  g.addColorStop(0,'#ff99ee'); g.addColorStop(1,'#88ddff');
+  ctx.globalAlpha = 0.35; ctx.fillStyle = g; ctx.fillRect(0,0,W,H); ctx.globalAlpha = 1;
+
+  if (Math.random() < 0.055) timeLeft--;
+  if (timeLeft <= 0) {
+    alert("タイムアップ！ 最終スコア: " + score);
+    location.reload();
+  }
+
+  // 敵更新（略）
+  for (let i = enemies.length-1; i >= 0; i--) {
+    const e = enemies[i];
+    e.y += e.speed;
+    if (e.waveType === 0) e.x += Math.sin(e.y * 0.085 + e.offset) * 2.8;
+    else e.x += Math.sin(e.y * 0.055 + e.offset) * 4.2;
+
+    ctx.save();
+    ctx.font = `${e.size}px ${e.font}`;
+    ctx.fillStyle = e.isCorrect ? '#ffee44' : '#ff88cc';
+    ctx.shadowBlur = 24; ctx.shadowColor = e.isCorrect ? '#ff0' : '#f0f';
+    ctx.fillText(e.char, Math.max(20, Math.min(W-40, e.x)), e.y);
+    ctx.restore();
+
+    if (e.y > H + 70) enemies.splice(i,1);
+  }
+
+  // 自弾（略）
+  for (let i=bullets.length-1; i>=0; i--) {
+    const b = bullets[i]; b.y -= b.speed;
+    ctx.fillStyle = '#222'; ctx.beginPath(); ctx.arc(b.x, b.y, 9, 0, Math.PI*2); ctx.fill();
+    if (b.y < -30) {bullets.splice(i,1); continue;}
+
+    for (let j=enemies.length-1; j>=0; j--) {
+      const e = enemies[j];
+      if (Math.hypot(b.x - e.x, b.y - e.y) < e.size*0.78) {
+        if (e.isCorrect) score += 150 + level*45;
+        else score = Math.max(0, score - 85);
+        enemies.splice(j,1); bullets.splice(i,1); break;
+      }
+    }
+  }
+
+  drawPlayer(playerX);
+  document.getElementById('score').textContent = score;
+  document.getElementById('level').textContent = `レベル ${level}`;
+
+  if (enemies.length < 8 && Math.random() < 0.25) createEnemy();
+  checkClear();
+}
+
+function loop() { update(); requestAnimationFrame(loop); }
+loop();
+
+// コントロール
+window.addEventListener('keydown', e => {
+  if (!gameRunning) return;
+  if (e.key === 'ArrowLeft' || e.key === 'a') playerX -= 35;
+  if (e.key === 'ArrowRight' || e.key === 'd') playerX += 35;
+  if (e.key === ' ' || e.key === 'Enter') shoot();
+});
+
+canvas.addEventListener('pointermove', e => {
+  if (!gameRunning) return;
+  const rect = canvas.getBoundingClientRect();
+  playerX = Math.max(20, Math.min(W-70, e.clientX - rect.left - 30));
+});
+
+canvas.addEventListener('pointerdown', () => { if(gameRunning) shoot(); });
+</script>
+
+</body>
+</html>
