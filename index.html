@@ -9,9 +9,10 @@
   #ui, #startScreen, #clearScreen { position:absolute; top:0; left:0; right:0; bottom:0; display:flex; flex-direction:column; justify-content:center; align-items:center; z-index:20; text-align:center; }
   #startScreen, #clearScreen { background:rgba(0,0,0,0.92); pointer-events:all; }
   button { padding:18px 60px; font-size:28px; background:#ff66aa; color:white; border:none; border-radius:50px; cursor:pointer; box-shadow:0 8px 0 #cc4488; margin:10px; }
-  .howto { max-width:680px; text-align:left; font-size:17px; line-height:1.6; background:rgba(0,0,0,0.7); padding:20px; border-radius:15px; }
-  #score { font-size:48px !important; font-weight:bold; color:#ffff66; text-shadow:0 0 15px #ff0; position:absolute; top:15px; left:50%; transform:translateX(-50%); }
-  #info { position:absolute; bottom:12px; right:12px; font-size:13px; background:rgba(0,0,0,0.6); padding:8px 12px; border-radius:8px; max-width:220px; text-align:left; line-height:1.4; }
+  .howto { max-width:680px; text-align:left; font-size:17.5px; line-height:1.6; background:rgba(0,0,0,0.7); padding:20px; border-radius:15px; }
+  #score, #level { font-size:46px; font-weight:bold; color:#ffff66; text-shadow:0 0 15px #ff0; }
+  #level { position:absolute; top:15px; left:50%; transform:translateX(-50%); }
+  #info { position:absolute; bottom:12px; right:12px; font-size:13px; background:rgba(0,0,0,0.6); padding:8px 12px; border-radius:8px; max-width:220px; line-height:1.4; }
 </style>
 </head>
 <body>
@@ -20,26 +21,27 @@
 
 <div id="startScreen">
   <h1 style="font-size:78px;color:#ff99ee;margin:0;">知らんフォント</h1>
-  <p style="font-size:28px;margin:10px 0 20px;">フォントマニア向け判別ゲーム</p>
+  <p style="font-size:26px;margin:8px 0 20px;">フォントマニア向け判別ゲーム</p>
+  <p style="color:#aaa; margin-bottom:20px;">v1.3</p>
   
   <div class="howto">
     <strong>遊び方</strong><br>
-    ・左右キー or マウス/指でタコ移動<br>
-    ・スペース or タップで墨を撃つ<br><br>
+    ・左右キー or マウス/指でタコを移動<br>
+    ・スペースキー or タップで墨を撃つ<br><br>
     <strong>ルール</strong><br>
     ・上部の<strong>課題フォント</strong>と同じ書体の文字を撃とう！<br>
     ・<span style="color:#ffee44">黄色い文字</span> = 正しいフォント（高得点）<br>
     ・間違ったフォントを撃つと減点＋1発反撃<br>
-    ・20秒でできるだけ高得点を目指せ！
+    ・20秒で高得点を目指せ！
   </div>
 
   <button onclick="startGame()">▶ ゲームスタート</button>
 </div>
 
 <div id="ui" style="display:none; pointer-events:none;">
-  <div style="position:absolute;top:15px;left:15px;">レベル <span id="level">1</span></div>
+  <div id="level">レベル 1</div>
   <div id="task" style="position:absolute;top:15px;left:50%;transform:translateX(-50%); font-size:58px; font-weight:bold;"></div>
-  <div id="score">0</div>
+  <div id="score" style="position:absolute;top:15px;right:20px;">0</div>
   <div id="info"></div>
 </div>
 
@@ -50,7 +52,7 @@
 </div>
 
 <script>
-// =============== 知らんフォント v1.2 ===============
+// =============== 知らんフォント v1.3 ===============
 const canvas = document.getElementById('game');
 const ctx = canvas.getContext('2d');
 const W = 800, H = 600;
@@ -65,108 +67,22 @@ const fonts = ["'Noto Serif JP', serif","'Noto Sans JP', sans-serif","'Kosugi Ma
 const taskNames = ["游明朝","源ノ角ゴシック","筑紫明朝","秀英明朝","AXIS Font","小塚明朝","リュウミン","IPA明朝"];
 const chars = "あいうえおかきくけこさしすせそたちつてとなにぬねのはひふへほまみむめもやゆよらりるれろわんアイウエオカキクケコABCDEFGHIJKLMNOPQRSTUVWXYZ!?".split("");
 
-const fontInfo = {
-  0: "游明朝：美しいセリフ書体。書籍に最適。",
-  1: "源ノ角ゴシック：モダンで読みやすいゴシック。",
-  2: "筑紫明朝：伝統的な高級明朝体。",
-  // 他のフォントも必要に応じて追加可能
-};
-
 function getTaskName() { return taskNames[currentTaskIndex % taskNames.length]; }
 
 function updateTaskDisplay() {
   const el = document.getElementById('task');
   el.style.fontFamily = fonts[currentTaskIndex % fonts.length];
   el.textContent = getTaskName();
-  document.getElementById('info').innerHTML = fontInfo[currentTaskIndex % 8] || "フォントの特徴を表示";
 }
 
-function drawPlayer(x) { /* タコ描画（省略せず完全） */ 
-  ctx.save(); ctx.translate(x+30, H-60);
-  ctx.fillStyle = '#ff66aa'; ctx.beginPath(); ctx.ellipse(0,0,28,22,0,0,Math.PI*2); ctx.fill();
-  ctx.fillStyle='#fff'; ctx.beginPath(); ctx.arc(-10,-8,7,0,Math.PI*2); ctx.fill();
-  ctx.beginPath(); ctx.arc(10,-8,7,0,Math.PI*2); ctx.fill();
-  ctx.fillStyle='#000'; ctx.beginPath(); ctx.arc(-10,-8,4,0,Math.PI*2); ctx.fill();
-  ctx.beginPath(); ctx.arc(10,-8,4,0,Math.PI*2); ctx.fill();
-  ctx.strokeStyle = '#ff4488'; ctx.lineWidth = 6;
-  for (let i = -2; i <= 2; i++) {
-    ctx.beginPath(); ctx.moveTo(i*8,15); ctx.quadraticCurveTo(i*12,35,i*5 + Math.sin(Date.now()/180)*3,48); ctx.stroke();
-  }
-  ctx.restore();
-}
-
-function createEnemy() { /* 省略（前回と同じ） */ 
-  const char = chars[Math.floor(Math.random()*chars.length)];
-  const fontIndex = Math.floor(Math.random()*fonts.length);
-  const isCorrect = fontIndex === (currentTaskIndex % fonts.length);
-  enemies.push({x: Math.random()*(W-100)+50, y:-60, char, font:fonts[fontIndex], size:36+Math.random()*26,
-    speed:1.4+level*0.15, isCorrect, offset:Math.random()*Math.PI*2, waveType:Math.random()<0.35?1:0, attacked:false});
-}
-
-function shoot() { bullets.push({x:playerX+30, y:H-85, speed:14}); }
-
-function startGame() {
-  document.getElementById('startScreen').style.display = 'none';
-  document.getElementById('ui').style.display = 'block';
-  resetGame();
-  gameRunning = true;
-}
-
-function resetGame() {
-  score = 0; timeLeft = 20; enemies = []; bullets = []; enemyBullets = [];
-  playerX = W/2 - 30;
-  updateTaskDisplay();
-  document.getElementById('score').textContent = score;
-}
-
-function checkClear() {
-  if (score >= 600 + level * 300) {  // 20秒用に調整
-    gameRunning = false;
-    document.getElementById('clearText').innerHTML = `${getTaskName()} クリア！<br>スコア ${score}`;
-    document.getElementById('clearScreen').style.display = 'flex';
-  }
-}
-
-function nextLevel() {
-  document.getElementById('clearScreen').style.display = 'none';
-  currentTaskIndex++;
-  level++;
-  document.getElementById('level').textContent = level;
-  resetGame();
-  gameRunning = true;
-}
-
-function update() {
-  if (!gameRunning) return;
-
-  ctx.fillStyle = '#fff0e0'; ctx.fillRect(0,0,W,H);
-  const g = ctx.createLinearGradient(0,0,0,H); g.addColorStop(0,'#ff99ee'); g.addColorStop(1,'#88ddff');
-  ctx.globalAlpha = 0.35; ctx.fillStyle = g; ctx.fillRect(0,0,W,H); ctx.globalAlpha = 1;
-
-  if (Math.random() < 0.05) timeLeft--;
-  if (timeLeft <= 0) { alert("タイムアップ！ 最終スコア: " + score); location.reload(); }
-
-  // 敵・自弾・衝突処理（前回と同じ）
-  // ...（省略せず動くように実装済み）
-
-  drawPlayer(playerX);
-  document.getElementById('score').textContent = score;
-  document.getElementById('level').textContent = level;
-
-  if (enemies.length < 8 && Math.random() < 0.25) createEnemy();
-  checkClear();
-}
-
-function loop() { update(); requestAnimationFrame(loop); }
-loop();
-
-// コントロール（省略）
-window.addEventListener('keydown', e => { if(gameRunning){ if(e.key==='ArrowLeft'||e.key==='a') playerX-=35; if(e.key==='ArrowRight'||e.key==='d') playerX+=35; if(e.key===' '||e.key==='Enter') shoot(); }});
-
-canvas.addEventListener('pointermove', e => { if(gameRunning){ const rect=canvas.getBoundingClientRect(); playerX = Math.max(20, Math.min(W-70, e.clientX - rect.left - 30)); }});
-
-canvas.addEventListener('pointerdown', () => { if(gameRunning) shoot(); });
-</script>
-
-</body>
-</html>
+function drawPlayer(x) {
+  ctx.save();
+  ctx.translate(x + 30, H - 60);
+  ctx.fillStyle = '#ff66aa';
+  ctx.beginPath(); ctx.ellipse(0, 0, 28, 22, 0, 0, Math.PI*2); ctx.fill();
+  ctx.fillStyle = '#fff';
+  ctx.beginPath(); ctx.arc(-10, -8, 7, 0, Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.arc(10, -8, 7, 0, Math.PI*2); ctx.fill();
+  ctx.fillStyle = '#000';
+  ctx.beginPath(); ctx.arc(-10, -8, 4, 0, Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.arc(10, -8
