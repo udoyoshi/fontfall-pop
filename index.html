@@ -357,10 +357,13 @@
       </div>
     </div>
 
-<h2 class="sf-title">知らんフォント</h2>
-<p style="margin:5px 0 10px; color:#ffe66b; font-weight:bold;">v3.4</p> <p class="sf-subtitle">
-  指定されたフォントだけを撃つ判別シューティング。<br>
-  画面クリック・タップ・Spaceキーで単発発射します。
+    <div class="sf-overlay sf-start">
+      <div class="sf-card">
+        <h2 class="sf-title">知らんフォント</h2>
+        <p class="sf-subtitle">
+          指定されたフォントだけを撃つ判別シューティング。<br>
+          画面クリック・タップ・Spaceキーで単発発射します。
+        </p>
 
         <div class="sf-mode-list">
           <button class="sf-button" type="button" data-sf-start="easy">やさしい</button>
@@ -1503,10 +1506,7 @@
           var shareXBtn = resultBody.querySelector(".sf-share-x");
           if (shareXBtn) {
             shareXBtn.addEventListener("click", function() {
-             // スクリプト内の該当箇所（1509行目、1519行目付近）
-// ここを "v3.3" から "v3.4" に書き換えてください
-
-var text = "フォントシューティング v3.4(" + MODE_CONFIG[mode].label + ")でスコア" + score + "を獲得！\n#フォントシューティング\n";
+              var text = "フォントシューティング v3.3(" + MODE_CONFIG[mode].label + ")でスコア" + score + "を獲得！\n#フォントシューティング\n";
               var url = "https://wayoh.jp/font-shooting";
               var shareUrl = "https://twitter.com/intent/tweet?text=" + encodeURIComponent(text) + "&url=" + encodeURIComponent(url);
               window.open(shareUrl, "_blank");
@@ -1516,7 +1516,7 @@ var text = "フォントシューティング v3.4(" + MODE_CONFIG[mode].label +
           var shareIgBtn = resultBody.querySelector(".sf-share-ig");
           if (shareIgBtn) {
             shareIgBtn.addEventListener("click", function() {
-              var text = "フォントシューティング v3.4(" + MODE_CONFIG[mode].label + ")でスコア" + score + "を獲得！\nhttps://wayoh.jp/font-shooting\n#フォントシューティング";
+              var text = "フォントシューティング v3.3(" + MODE_CONFIG[mode].label + ")でスコア" + score + "を獲得！\nhttps://wayoh.jp/font-shooting\n#フォントシューティング";
               navigator.clipboard.writeText(text).then(function() {
                 alert("結果をクリップボードにコピーしました。\nInstagramを開いてペーストして投稿してください。");
                 window.open("https://www.instagram.com/", "_blank");
