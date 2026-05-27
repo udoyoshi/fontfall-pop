@@ -3,21 +3,33 @@
 <head>
 <meta charset="UTF-8">
 <title>知らんフォント</title>
+<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@700&family=Noto+Sans+JP:wght@700;900&family=Kosugi+Maru&family=Yuji+Syuku&family=M+PLUS+Rounded+1c:wght@700&display=swap" rel="stylesheet">
 <style>
-  body { margin:0; background:#111; font-family:sans-serif; overflow:hidden; }
-  canvas { display:block; margin:20px auto; background:#0f0a05; touch-action:none; box-shadow:0 15px 40px rgba(0,0,0,0.8); border-radius:12px; }
+  body { 
+    margin:0; background:#0a0503; font-family:'Noto Sans JP', sans-serif; 
+    overflow:hidden; color:#f5e8d3;
+  }
+  canvas { 
+    display:block; margin:30px auto 20px; background:#f9f4eb; 
+    box-shadow:0 20px 50px rgba(0,0,0,0.8); border-radius:16px;
+  }
   
   #startScreen, #clearScreen { 
     position:absolute; top:0; left:0; right:0; bottom:0; 
     display:flex; flex-direction:column; justify-content:center; align-items:center; 
-    z-index:100; text-align:center; background:linear-gradient(#2c1f1f, #1a0f0f);
+    z-index:100; text-align:center; background:linear-gradient(180deg, #2c1f18, #0f0805);
+  }
+  h1 { 
+    font-family:'Shippori Mincho', serif; font-size:78px; color:#ffddbb; 
+    margin:0 0 8px 0; text-shadow:0 4px 15px rgba(255,120,80,0.6);
+    letter-spacing:6px;
   }
   button { 
-    padding:20px 80px; font-size:28px; background:#c41e3a; color:#fff; 
-    border:none; border-radius:50px; cursor:pointer; box-shadow:0 10px 0 #9c182f; 
-    margin-top:30px; font-weight:bold; letter-spacing:2px;
+    padding:18px 90px; font-size:26px; background:#b33a2e; color:#fff; 
+    border:none; border-radius:50px; cursor:pointer; box-shadow:0 10px 0 #8a2a22; 
+    margin-top:30px; font-weight:bold; letter-spacing:3px;
   }
-  button:active { transform:translateY(6px); box-shadow:0 4px 0 #9c182f; }
+  button:active { transform:translateY(6px); box-shadow:0 4px 0 #8a2a22; }
 </style>
 </head>
 <body>
@@ -25,37 +37,37 @@
 <canvas id="game" width="800" height="600"></canvas>
 
 <div id="startScreen">
-  <h1 style="font-size:82px; color:#ffddaa; margin:0; text-shadow:0 0 20px #ffaa77; letter-spacing:4px;">知らんフォント</h1>
-  <p style="font-size:26px; margin:10px 0 30px; color:#eedd99;">v3.1</p>
+  <h1>知らんフォント</h1>
+  <p style="font-size:24px;margin:8px 0 30px;color:#e8c090">v3.2</p>
   
-  <div style="max-width:620px; text-align:left; font-size:17px; line-height:1.8; background:rgba(0,0,0,0.6); padding:25px; border-radius:12px; color:#ffeecc;">
+  <div style="max-width:580px;background:rgba(0,0,0,0.65);padding:28px;border-radius:16px;text-align:left;line-height:1.75;font-size:17px;color:#f0e0c0;">
     <strong>遊び方</strong><br>
-    ・左右キー or マウス/指でタコ移動<br>
+    ・左右キー or マウス/指でタコを移動<br>
     ・スペース or タップで墨を撃つ<br><br>
     <strong>ルール</strong><br>
-    上部の<strong>課題フォント</strong>と同じ書体の文字を撃とう！<br>
-    <span style="color:#ffee44">黄色い文字</span>を中心に、正解を12個で次のフォントへ
+    上部の<strong>課題フォント</strong>と同じ書体の文字（<span style="color:#ffee88">黄色</span>）を撃とう！<br>
+    正解12個で次のフォントへ
   </div>
   <button onclick="startGame()">▶ ゲームスタート</button>
 </div>
 
 <div id="ui" style="display:none;position:absolute;top:0;left:0;right:0;z-index:50;pointer-events:none">
-  <div id="level" style="position:absolute;top:20px;left:30px;font-size:32px;font-weight:bold;color:#ffeeaa;text-shadow:0 0 10px #000">レベル 1</div>
-  <div id="score" style="position:absolute;top:20px;right:30px;font-size:42px;font-weight:bold;color:#ffeeaa;text-shadow:0 0 15px #ff0">0</div>
-  <div id="task" style="position:absolute;top:75px;left:50%;transform:translateX(-50%);font-size:58px;font-weight:bold;text-shadow:3px 3px 8px #000"></div>
-  <div id="missInfo" style="position:absolute;top:150px;left:50%;transform:translateX(-50%);font-size:32px;color:#ff6666;font-weight:bold;opacity:0;transition:opacity 0.8s"></div>
+  <div id="level" style="position:absolute;top:22px;left:35px;font-size:32px;font-weight:bold;color:#ffeecc">レベル 1</div>
+  <div id="score" style="position:absolute;top:22px;right:35px;font-size:42px;font-weight:bold;color:#ffeecc">0</div>
+  <div id="task" style="position:absolute;top:78px;left:50%;transform:translateX(-50%);font-size:62px;font-weight:bold;text-shadow:0 4px 12px #000"></div>
+  <div id="missInfo" style="position:absolute;top:155px;left:50%;transform:translateX(-50%);font-size:30px;color:#ff7777;font-weight:bold;opacity:0;transition:opacity 0.6s"></div>
 </div>
 
-<div id="clearScreen" style="display:none;position:absolute;top:0;left:0;right:0;bottom:0;display:flex;flex-direction:column;justify-content:center;align-items:center;z-index:100;text-align:center;background:rgba(20,10,10,0.98)">
-  <h1 style="color:#ffee88;font-size:52px;margin:0">タイムアップ！</h1>
+<div id="clearScreen" style="display:none;position:absolute;top:0;left:0;right:0;bottom:0;display:flex;flex-direction:column;justify-content:center;align-items:center;z-index:100;text-align:center;background:rgba(10,5,3,0.97)">
+  <h1 style="color:#ffee88;font-size:52px">タイムアップ！</h1>
   <p id="clearText" style="font-size:34px;margin:25px 0;line-height:1.5"></p>
   <button onclick="restartGame()">もう一度プレイ</button>
 </div>
 
-<button id="muteBtn" style="position:absolute;top:20px;right:20px;z-index:200;background:rgba(255,255,255,0.2);color:white;border:none;border-radius:50%;width:52px;height:52px;font-size:26px;cursor:pointer;">🔊</button>
+<button id="muteBtn" style="position:absolute;top:25px;right:25px;z-index:200;background:rgba(255,255,255,0.2);color:#fff;border:none;border-radius:50%;width:56px;height:56px;font-size:26px;cursor:pointer;">🔊</button>
 
 <script>
-// 知らんフォント v3.1 - デザイン大幅修正版
+// 知らんフォント v3.2 - デザイン完全刷新版
 const canvas = document.getElementById('game');
 const ctx = canvas.getContext('2d');
 const W = 800, H = 600;
@@ -65,19 +77,18 @@ let bullets = [], enemies = [], gameRunning = false, currentTaskIndex = 0;
 let lastTime = Date.now(), highScore = localStorage.getItem('fontfallHigh') || 0;
 let isMuted = false;
 
-const fonts = ["'Noto Serif JP', serif","'Noto Sans JP', sans-serif","'Kosugi Maru', sans-serif","'Yuji Syuku', cursive","'M PLUS Rounded 1c', sans-serif","'Shippori Mincho', serif"];
+const fonts = ["'Shippori Mincho', serif","'Noto Sans JP', sans-serif","'Kosugi Maru', sans-serif","'Yuji Syuku', cursive","'M PLUS Rounded 1c', sans-serif","'Shippori Mincho', serif"];
 const taskNames = ["游明朝","源ノ角ゴシック","筑紫明朝","秀英明朝","AXIS Font","小塚明朝","リュウミン","IPA明朝"];
 const chars = "あいうえおかきくけこさしすせそたちつてとなにぬねのはひふへほまみむめもやゆよらりるれろわんアイウエオカキクケコABCDEFGHIJKLMNOPQRSTUVWXYZ!?".split("");
 
 let audioCtx = null;
 
 function initAudio() { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); }
-
 function playSound(type) {
   if (isMuted || !audioCtx) return;
   const osc = audioCtx.createOscillator(), gain = audioCtx.createGain();
   osc.connect(gain); gain.connect(audioCtx.destination);
-  if (type === "shoot") { osc.type = 'sawtooth'; osc.frequency.value = 850; gain.gain.value = 0.2; }
+  if (type === "shoot") { osc.type = 'sawtooth'; osc.frequency.value = 880; gain.gain.value = 0.2; }
   else if (type === "hit") { osc.type = 'sine'; osc.frequency.value = 1680; gain.gain.value = 0.6; }
   else if (type === "miss") { osc.type = 'sawtooth'; osc.frequency.value = 280; gain.gain.value = 0.35; }
   gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.35);
@@ -93,14 +104,14 @@ function updateTaskDisplay() {
 function drawPlayer() {
   ctx.save();
   ctx.translate(playerX + 30, H - 65);
-  ctx.fillStyle = '#ff6699';
+  ctx.fillStyle = '#e85d8c';
   ctx.beginPath(); ctx.ellipse(0, 0, 29, 23, 0, 0, Math.PI*2); ctx.fill();
   ctx.fillStyle = '#fff';
-  ctx.beginPath(); ctx.arc(-11, -9, 7.5, 0, Math.PI*2); ctx.fill();
-  ctx.beginPath(); ctx.arc(11, -9, 7.5, 0, Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.arc(-11, -8, 7.5, 0, Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.arc(11, -8, 7.5, 0, Math.PI*2); ctx.fill();
   ctx.fillStyle = '#111';
-  ctx.beginPath(); ctx.arc(-11, -9, 4, 0, Math.PI*2); ctx.fill();
-  ctx.beginPath(); ctx.arc(11, -9, 4, 0, Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.arc(-10.5, -7.5, 4, 0, Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.arc(11.5, -7.5, 4, 0, Math.PI*2); ctx.fill();
   ctx.restore();
 }
 
@@ -109,9 +120,9 @@ function createEnemy() {
   const fi = Math.floor(Math.random()*fonts.length);
   const isCorrect = fi === (currentTaskIndex % fonts.length);
   enemies.push({
-    x: Math.random()*(W-100)+50, y: -60, char,
-    font: fonts[fi], size: 38 + Math.random()*24,
-    speed: 1.45 + level*0.14, isCorrect,
+    x: Math.random()*(W-120)+60, y: -60, char,
+    font: fonts[fi], size: 42 + Math.random()*22,
+    speed: 1.4 + level*0.13, isCorrect,
     offset: Math.random()*Math.PI*2, waveType: Math.random()<0.4?1:0
   });
 }
@@ -151,38 +162,39 @@ function checkLevelUp() {
 function update() {
   if (!gameRunning) return;
   const now = Date.now();
-  if (now - lastTime >= 1000) { timeLeft = Math.max(0, timeLeft-1); lastTime = now; }
+  if (now - lastTime >= 1000) { timeLeft = Math.max(0, timeLeft - 1); lastTime = now; }
 
-  ctx.fillStyle = '#f8f0e8'; ctx.fillRect(0,0,W,H);
-  const grad = ctx.createLinearGradient(0,0,0,H);
-  grad.addColorStop(0, '#f5e8e0'); grad.addColorStop(1, '#e8f0f8');
-  ctx.globalAlpha = 0.45; ctx.fillStyle = grad; ctx.fillRect(0,0,W,H); ctx.globalAlpha = 1;
+  ctx.fillStyle = '#f9f4eb'; ctx.fillRect(0,0,W,H);
+  const g = ctx.createLinearGradient(0,0,0,H);
+  g.addColorStop(0,'#f5e8d8'); g.addColorStop(1,'#e8d9c8');
+  ctx.globalAlpha = 0.5; ctx.fillStyle = g; ctx.fillRect(0,0,W,H); ctx.globalAlpha = 1;
 
+  // 敵
   for (let i = enemies.length-1; i >= 0; i--) {
     const en = enemies[i];
     en.y += en.speed;
-    if (en.waveType === 0) en.x += Math.sin(en.y * 0.085 + en.offset) * 2.8;
-    else en.x += Math.sin(en.y * 0.055 + en.offset) * 4.2;
+    if (en.waveType === 0) en.x += Math.sin(en.y*0.085 + en.offset)*2.8;
+    else en.x += Math.sin(en.y*0.055 + en.offset)*4.2;
 
     ctx.save();
     ctx.font = `${en.size}px ${en.font}`;
-    ctx.fillStyle = en.isCorrect ? '#ffee44' : '#dd99aa';
-    ctx.shadowBlur = en.isCorrect ? 30 : 6;
-    ctx.shadowColor = en.isCorrect ? '#ffff77' : '#000';
+    ctx.fillStyle = en.isCorrect ? '#ffee66' : '#aa6644';
+    ctx.shadowBlur = en.isCorrect ? 35 : 10;
+    ctx.shadowColor = en.isCorrect ? '#ffee99' : '#552211';
     ctx.fillText(en.char, Math.max(25, Math.min(W-45, en.x)), en.y);
     ctx.restore();
-
     if (en.y > H + 80) enemies.splice(i,1);
   }
 
+  // 弾
   for (let i=bullets.length-1; i>=0; i--) {
     const b = bullets[i]; b.y -= b.speed;
-    ctx.fillStyle = '#111'; ctx.beginPath(); ctx.arc(b.x, b.y, 9, 0, Math.PI*2); ctx.fill();
+    ctx.fillStyle = '#222'; ctx.beginPath(); ctx.arc(b.x, b.y, 9, 0, Math.PI*2); ctx.fill();
     if (b.y < -30) {bullets.splice(i,1); continue;}
 
     for (let j=enemies.length-1; j>=0; j--) {
       const en = enemies[j];
-      if (Math.hypot(b.x - en.x, b.y - en.y) < en.size * 0.75) {
+      if (Math.hypot(b.x - en.x, b.y - en.y) < en.size*0.78) {
         if (en.isCorrect) {
           score += 150 + level*45;
           correctCount++;
@@ -194,7 +206,7 @@ function update() {
           const missEl = document.getElementById('missInfo');
           missEl.textContent = `× ${taskNames[fonts.indexOf(en.font)] || '誤フォント'}`;
           missEl.style.opacity = 1;
-          setTimeout(() => missEl.style.opacity = 0, 1300);
+          setTimeout(() => missEl.style.opacity = 0, 1400);
         }
         enemies.splice(j,1); bullets.splice(i,1); break;
       }
@@ -213,7 +225,7 @@ function update() {
     document.getElementById('clearScreen').style.display = 'flex';
   }
 
-  if (enemies.length < 8 && Math.random() < 0.27) createEnemy();
+  if (enemies.length < 8 && Math.random() < 0.28) createEnemy();
 }
 
 function loop() { update(); requestAnimationFrame(loop); }
