@@ -1,55 +1,42 @@
-<!DOCTYPE html>
-<html lang="ja">
-<head>
-<meta charset="UTF-8">
-<title>知らんフォント</title>
-<style>
-  body { margin:0; background:#111; font-family:sans-serif; color:white; overflow:hidden; }
-  canvas { display:block; margin:0 auto; background:#000; touch-action:none; }
-  #startScreen, #clearScreen { 
-    position:absolute; top:0; left:0; right:0; bottom:0; 
-    display:flex; flex-direction:column; justify-content:center; align-items:center; 
-    z-index:100; text-align:center; background:rgba(0,0,0,0.96); pointer-events:all;
-  }
-  button { padding:18px 70px; font-size:29px; background:#ff66aa; color:white; border:none; border-radius:50px; cursor:pointer; box-shadow:0 8px 0 #cc4488; margin-top:25px; font-weight:bold; }
-  button:active { transform:translateY(5px); box-shadow:0 3px 0 #cc4488; }
-</style>
-</head>
-<body>
+<div style="max-width:820px;margin:40px auto;background:#111;border-radius:12px;overflow:hidden;box-shadow:0 10px 30px rgba(0,0,0,0.6);position:relative">
 
-<canvas id="game" width="800" height="600"></canvas>
+<canvas id="game" width="800" height="600" style="display:block;margin:0 auto;background:#000;max-width:100%;height:auto"></canvas>
 
-<div id="startScreen">
-  <h1 style="font-size:74px;color:#ff99ee;margin:0">知らんフォント</h1>
-  <p style="font-size:26px;margin:5px 0 25px;color:#ffeeaa">v2.8</p>
+<div id="startScreen" style="position:absolute;top:0;left:0;right:0;bottom:0;display:flex;flex-direction:column;justify-content:center;align-items:center;z-index:100;text-align:center;background:rgba(0,0,0,0.95)">
+  <h1 style="font-size:74px;color:#ff99cc;margin:0">知らんフォント</h1>
+  <p style="font-size:26px;margin:5px 0 25px;color:#ffeecc">v3.0</p>
   <div style="max-width:680px;text-align:left;font-size:16.5px;line-height:1.7;background:rgba(0,0,0,0.75);padding:25px;border-radius:15px;margin:20px;color:#fff">
     <strong>遊び方</strong><br>・左右キー or マウス/指でタコ移動<br>・スペース or タップで墨を撃つ<br><br>
     <strong>ルール</strong><br>上部の<strong>課題フォント</strong>と同じ書体の文字（<span style="color:#ffee44">黄色</span>）を撃とう！<br>正解12個で次のフォントへ
   </div>
-  <button onclick="startGame()">▶ ゲームスタート</button>
+  <button id="sBtn" style="padding:18px 70px;font-size:29px;background:#ff77aa;color:white;border:none;border-radius:50px;cursor:pointer;box-shadow:0 8px 0 #cc5588;margin-top:25px;font-weight:bold">▶ ゲームスタート</button>
 </div>
 
 <div id="ui" style="display:none;position:absolute;top:0;left:0;right:0;z-index:50;pointer-events:none">
-  <div id="level" style="position:absolute;top:16px;right:165px;font-size:36px;font-weight:bold;color:#ffff66;text-shadow:0 0 10px #000">レベル 1</div>
-  <div id="task" style="position:absolute;top:68px;left:50%;transform:translateX(-50%);font-size:54px;font-weight:bold;text-shadow:0 0 22px #ff0"></div>
-  <div id="score" style="position:absolute;top:13px;right:20px;font-size:45px;font-weight:bold;color:#ffff66;text-shadow:0 0 15px #ff0">0</div>
-  <div id="missInfo" style="position:absolute;top:135px;left:50%;transform:translateX(-50%);font-size:29px;color:#ff6666;font-weight:bold;opacity:0;transition:opacity 0.7s"></div>
+  <div id="level" style="position:absolute;top:16px;right:180px;font-size:36px;font-weight:bold;color:#ffff88">レベル 1</div>
+  <div id="score" style="position:absolute;top:13px;right:25px;font-size:45px;font-weight:bold;color:#ffff88">0</div>
+  <div id="task" style="position:absolute;top:68px;left:50%;transform:translateX(-50%);font-size:54px;font-weight:bold;text-shadow:0 0 15px #ff0"></div>
+  <div id="missInfo" style="position:absolute;top:135px;left:50%;transform:translateX(-50%);font-size:29px;color:#ff8888;font-weight:bold;opacity:0;transition:opacity 0.7s"></div>
 </div>
 
 <div id="clearScreen" style="display:none;position:absolute;top:0;left:0;right:0;bottom:0;display:flex;flex-direction:column;justify-content:center;align-items:center;z-index:100;text-align:center;background:rgba(0,0,0,0.96)">
   <h1 style="color:#ffee44">タイムアップ！</h1>
   <p id="clearText" style="font-size:33px;margin:20px 0;line-height:1.4"></p>
-  <button onclick="restartGame()">もう一度プレイ</button>
+  <button id="rBtn" style="padding:18px 70px;font-size:29px;background:#ff77aa;color:white;border:none;border-radius:50px;cursor:pointer;box-shadow:0 8px 0 #cc5588;margin-top:25px;font-weight:bold">もう一度プレイ</button>
 </div>
 
+<button id="muteBtn" style="position:absolute;top:15px;right:15px;z-index:200;background:rgba(255,255,255,0.2);color:white;border:none;border-radius:50%;width:48px;height:48px;font-size:20px;cursor:pointer;">🔊</button>
+
 <script>
-// 知らんフォント v2.8 - 単体HTML完全版
+// 知らんフォント v3.0 - WordPress版（オリジナル尊重）
 const canvas = document.getElementById('game');
 const ctx = canvas.getContext('2d');
 const W = 800, H = 600;
+
 let score = 0, level = 1, timeLeft = 60, correctCount = 0, playerX = W/2 - 30;
 let bullets = [], enemies = [], gameRunning = false, currentTaskIndex = 0;
 let lastTime = Date.now(), highScore = localStorage.getItem('fontfallHigh') || 0;
+let isMuted = false;
 
 const fonts = ["'Noto Serif JP', serif","'Noto Sans JP', sans-serif","'Kosugi Maru', sans-serif","'Yuji Syuku', cursive","'M PLUS Rounded 1c', sans-serif","'Shippori Mincho', serif"];
 const taskNames = ["游明朝","源ノ角ゴシック","筑紫明朝","秀英明朝","AXIS Font","小塚明朝","リュウミン","IPA明朝"];
@@ -58,15 +45,16 @@ const chars = "あいうえおかきくけこさしすせそたちつてとな�
 let audioCtx = null;
 
 function initAudio() { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); }
-function playSound(t) {
-  if (!audioCtx) return;
-  const o = audioCtx.createOscillator(), g = audioCtx.createGain();
-  o.connect(g); g.connect(audioCtx.destination);
-  if (t === "shoot") { o.type = "sawtooth"; o.frequency.value = 850; g.gain.value = 0.25; }
-  else if (t === "hit") { o.type = "sine"; o.frequency.value = 1650; g.gain.value = 0.6; }
-  else if (t === "miss") { o.type = "sawtooth"; o.frequency.value = 320; g.gain.value = 0.4; }
-  g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.35);
-  o.start(); o.stop(audioCtx.currentTime + 0.5);
+
+function playSound(type) {
+  if (isMuted || !audioCtx) return;
+  const osc = audioCtx.createOscillator(), gain = audioCtx.createGain();
+  osc.connect(gain); gain.connect(audioCtx.destination);
+  if (type === "shoot") { osc.type = 'sawtooth'; osc.frequency.value = 850; gain.gain.value = 0.2; }
+  else if (type === "hit") { osc.type = 'sine'; osc.frequency.value = 1650; gain.gain.value = 0.5; }
+  else if (type === "miss") { osc.type = 'sawtooth'; osc.frequency.value = 320; gain.gain.value = 0.3; }
+  gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.3);
+  osc.start(); osc.stop(audioCtx.currentTime + 0.4);
 }
 
 function updateTaskDisplay() {
@@ -78,7 +66,7 @@ function updateTaskDisplay() {
 function drawPlayer() {
   ctx.save();
   ctx.translate(playerX + 30, H - 60);
-  ctx.fillStyle = '#ff66aa';
+  ctx.fillStyle = '#ff77aa';
   ctx.beginPath(); ctx.ellipse(0, 0, 28, 22, 0, 0, Math.PI*2); ctx.fill();
   ctx.fillStyle = '#fff';
   ctx.beginPath(); ctx.arc(-10, -8, 7, 0, Math.PI*2); ctx.fill();
@@ -100,7 +88,12 @@ function createEnemy() {
   const char = chars[Math.floor(Math.random()*chars.length)];
   const fi = Math.floor(Math.random()*fonts.length);
   const isCorrect = fi === (currentTaskIndex % fonts.length);
-  enemies.push({x: Math.random()*(W-100)+50, y: -60, char, font: fonts[fi], size: 36 + Math.random()*26, speed: 1.4 + level*0.13, isCorrect, offset: Math.random()*Math.PI*2, waveType: Math.random()<0.4?1:0});
+  enemies.push({
+    x: Math.random()*(W-100)+50, y: -60, char: char,
+    font: fonts[fi], size: 36 + Math.random()*26,
+    speed: 1.4 + level*0.13, isCorrect: isCorrect,
+    offset: Math.random()*Math.PI*2, waveType: Math.random()<0.4?1:0
+  });
 }
 
 function shoot() {
@@ -137,36 +130,40 @@ function checkLevelUp() {
 
 function update() {
   if (!gameRunning) return;
+
   const now = Date.now();
   if (now - lastTime >= 1000) { timeLeft = Math.max(0, timeLeft - 1); lastTime = now; }
 
-  ctx.fillStyle = '#fff0e0'; ctx.fillRect(0,0,W,H);
+  ctx.fillStyle = '#fff8f0'; ctx.fillRect(0,0,W,H);
   const g = ctx.createLinearGradient(0,0,0,H);
-  g.addColorStop(0,'#ff99ee'); g.addColorStop(1,'#88ddff');
-  ctx.globalAlpha = 0.35; ctx.fillStyle = g; ctx.fillRect(0,0,W,H); ctx.globalAlpha = 1;
+  g.addColorStop(0,'#ffeef5'); g.addColorStop(1,'#e0f0ff');
+  ctx.globalAlpha = 0.4; ctx.fillStyle = g; ctx.fillRect(0,0,W,H); ctx.globalAlpha = 1;
 
   for (let i = enemies.length-1; i >= 0; i--) {
     const en = enemies[i];
     en.y += en.speed;
     if (en.waveType === 0) en.x += Math.sin(en.y*0.085 + en.offset)*2.8;
     else en.x += Math.sin(en.y*0.055 + en.offset)*4.2;
+
     ctx.save();
-    ctx.font = en.size + 'px ' + en.font;
-    ctx.fillStyle = en.isCorrect ? '#ffee44' : '#ff88cc';
-    ctx.shadowBlur = en.isCorrect ? 35 : 15;
-    ctx.shadowColor = en.isCorrect ? '#ffff00' : '#ff44aa';
+    ctx.font = `${en.size}px ${en.font}`;
+    ctx.fillStyle = en.isCorrect ? '#ffee44' : '#ff99bb';
+    ctx.shadowBlur = en.isCorrect ? 25 : 8;
+    ctx.shadowColor = en.isCorrect ? '#ffff88' : '#ff99bb';
     ctx.fillText(en.char, Math.max(20, Math.min(W-40, en.x)), en.y);
     ctx.restore();
+
     if (en.y > H + 70) enemies.splice(i,1);
   }
 
-  for (let i = bullets.length-1; i >= 0; i--) {
+  for (let i=bullets.length-1; i>=0; i--) {
     const b = bullets[i]; b.y -= b.speed;
     ctx.fillStyle = '#222'; ctx.beginPath(); ctx.arc(b.x, b.y, 9, 0, Math.PI*2); ctx.fill();
-    if (b.y < -30) { bullets.splice(i,1); continue; }
-    for (let j = enemies.length-1; j >= 0; j--) {
+    if (b.y < -30) {bullets.splice(i,1); continue;}
+
+    for (let j=enemies.length-1; j>=0; j--) {
       const en = enemies[j];
-      if (Math.hypot(b.x - en.x, b.y - en.y) < en.size * 0.78) {
+      if (Math.hypot(b.x - en.x, b.y - en.y) < en.size*0.78) {
         if (en.isCorrect) {
           score += 150 + level*45;
           correctCount++;
@@ -175,10 +172,10 @@ function update() {
         } else {
           score = Math.max(0, score - 85);
           playSound("miss");
-          const m = document.getElementById('missInfo');
-          m.textContent = '× ' + (taskNames[fonts.indexOf(en.font)] || '誤フォント');
-          m.style.opacity = 1;
-          setTimeout(() => m.style.opacity = 0, 1400);
+          const missEl = document.getElementById('missInfo');
+          missEl.textContent = `× ${taskNames[fonts.indexOf(en.font)] || '誤フォント'}`;
+          missEl.style.opacity = 1;
+          setTimeout(() => missEl.style.opacity = 0, 1400);
         }
         enemies.splice(j,1); bullets.splice(i,1); break;
       }
@@ -186,15 +183,13 @@ function update() {
   }
 
   drawPlayer();
+
   document.getElementById('score').textContent = score;
-  document.getElementById('level').textContent = 'レベル ' + level;
+  document.getElementById('level').textContent = `レベル ${level}`;
 
   if (timeLeft <= 0) {
     gameRunning = false;
-    if (score > highScore) {
-      highScore = score;
-      localStorage.setItem('fontfallHigh', highScore);
-    }
+    if (score > highScore) { highScore = score; localStorage.setItem('fontfallHigh', highScore); }
     document.getElementById('clearText').innerHTML = `最終スコア <strong>${score}</strong><br>ハイスコア <strong>${highScore}</strong>`;
     document.getElementById('clearScreen').style.display = 'flex';
   }
@@ -203,13 +198,36 @@ function update() {
 }
 
 function loop() { update(); requestAnimationFrame(loop); }
-function restartGame() {
+
+// コントロール
+document.getElementById('sBtn').onclick = startGame;
+document.getElementById('rBtn').onclick = () => {
   document.getElementById('clearScreen').style.display = 'none';
   document.getElementById('ui').style.display = 'none';
   document.getElementById('startScreen').style.display = 'flex';
-}
+};
+
+const muteBtn = document.getElementById('muteBtn');
+muteBtn.onclick = () => {
+  isMuted = !isMuted;
+  muteBtn.textContent = isMuted ? '🔇' : '🔊';
+};
+
+window.addEventListener('keydown', e => {
+  if (!gameRunning) return;
+  if (e.key === 'ArrowLeft' || e.key === 'a') playerX -= 35;
+  if (e.key === 'ArrowRight' || e.key === 'd') playerX += 35;
+  if (e.key === ' ' || e.key === 'Enter') shoot();
+});
+
+canvas.addEventListener('pointermove', e => {
+  if (!gameRunning) return;
+  const rect = canvas.getBoundingClientRect();
+  playerX = Math.max(20, Math.min(W-70, e.clientX - rect.left - 30));
+});
+
+canvas.addEventListener('pointerdown', () => { if(gameRunning) shoot(); });
 
 loop();
 </script>
-</body>
-</html>
+</div>
