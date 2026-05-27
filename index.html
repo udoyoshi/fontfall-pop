@@ -6,22 +6,13 @@
 <style>
   body { margin:0; background:#111; font-family:sans-serif; color:white; overflow:hidden; }
   canvas { display:block; margin:0 auto; background:#000; touch-action:none; }
-  
   #startScreen, #clearScreen { 
     position:absolute; top:0; left:0; right:0; bottom:0; 
     display:flex; flex-direction:column; justify-content:center; align-items:center; 
-    z-index:100; text-align:center; background:rgba(0,0,0,0.95); pointer-events:all;
+    z-index:100; text-align:center; background:rgba(0,0,0,0.96); pointer-events:all;
   }
-  button { padding:20px 70px; font-size:30px; background:#ff66aa; color:white; border:none; border-radius:50px; cursor:pointer; box-shadow:0 10px 0 #cc4488; margin-top:20px; }
-  button:active { transform:translateY(6px); box-shadow:0 4px 0 #cc4488; }
-
-  .howto { max-width:680px; text-align:left; font-size:17.5px; line-height:1.6; background:rgba(0,0,0,0.7); padding:20px; border-radius:15px; margin:20px; }
-
-  #ui { position:absolute; top:0; left:0; right:0; z-index:50; pointer-events:none; }
-  #level { position:absolute; top:18px; right:180px; font-size:38px; font-weight:bold; color:#ffff66; }
-  #score { position:absolute; top:18px; right:25px; font-size:46px; font-weight:bold; color:#ffff66; text-shadow:0 0 15px #ff0; }
-  #task { position:absolute; top:68px; left:50%; transform:translateX(-50%); font-size:54px; font-weight:bold; text-shadow:0 0 20px #ff0; }
-  #missInfo { position:absolute; top:135px; left:50%; transform:translateX(-50%); font-size:30px; color:#ff6666; font-weight:bold; opacity:0; transition:opacity 0.6s; }
+  button { padding:18px 70px; font-size:29px; background:#ff66aa; color:white; border:none; border-radius:50px; cursor:pointer; box-shadow:0 8px 0 #cc4488; margin-top:25px; font-weight:bold; }
+  button:active { transform:translateY(5px); box-shadow:0 3px 0 #cc4488; }
 </style>
 </head>
 <body>
@@ -29,76 +20,64 @@
 <canvas id="game" width="800" height="600"></canvas>
 
 <div id="startScreen">
-  <h1 style="font-size:78px;color:#ff99ee;margin:0;">知らんフォント</h1>
-  <p style="font-size:26px;margin:8px 0 20px;">v2.0</p>
-  
-  <div class="howto">
-    <strong>遊び方</strong><br>
-    ・左右キー or マウス/指でタコ移動<br>
-    ・スペース or タップで墨を撃つ<br><br>
-    <strong>ルール</strong><br>
-    ・上部の<strong>課題フォント</strong>と同じ書体の文字を撃とう！<br>
-    ・<span style="color:#ffee44">黄色い文字</span>を中心に、正しい書体の文字を撃つと高得点<br>
-    ・正しいフォントをたくさん撃つと次のフォントへ
+  <h1 style="font-size:74px;color:#ff99ee;margin:0">知らんフォント</h1>
+  <p style="font-size:26px;margin:5px 0 25px;color:#ffeeaa">v2.8</p>
+  <div style="max-width:680px;text-align:left;font-size:16.5px;line-height:1.7;background:rgba(0,0,0,0.75);padding:25px;border-radius:15px;margin:20px;color:#fff">
+    <strong>遊び方</strong><br>・左右キー or マウス/指でタコ移動<br>・スペース or タップで墨を撃つ<br><br>
+    <strong>ルール</strong><br>上部の<strong>課題フォント</strong>と同じ書体の文字（<span style="color:#ffee44">黄色</span>）を撃とう！<br>正解12個で次のフォントへ
   </div>
-
   <button onclick="startGame()">▶ ゲームスタート</button>
 </div>
 
-<div id="ui" style="display:none;">
-  <div id="level">レベル 1</div>
-  <div id="task"></div>
-  <div id="score">0</div>
-  <div id="missInfo"></div>
+<div id="ui" style="display:none;position:absolute;top:0;left:0;right:0;z-index:50;pointer-events:none">
+  <div id="level" style="position:absolute;top:16px;right:165px;font-size:36px;font-weight:bold;color:#ffff66;text-shadow:0 0 10px #000">レベル 1</div>
+  <div id="task" style="position:absolute;top:68px;left:50%;transform:translateX(-50%);font-size:54px;font-weight:bold;text-shadow:0 0 22px #ff0"></div>
+  <div id="score" style="position:absolute;top:13px;right:20px;font-size:45px;font-weight:bold;color:#ffff66;text-shadow:0 0 15px #ff0">0</div>
+  <div id="missInfo" style="position:absolute;top:135px;left:50%;transform:translateX(-50%);font-size:29px;color:#ff6666;font-weight:bold;opacity:0;transition:opacity 0.7s"></div>
 </div>
 
-<div id="clearScreen" style="display:none;">
-  <h1 style="color:#ffee44;">タイムアップ！</h1>
-  <p id="clearText" style="font-size:34px;"></p>
-  <button onclick="restartGame()">タイトルに戻る</button>
+<div id="clearScreen" style="display:none;position:absolute;top:0;left:0;right:0;bottom:0;display:flex;flex-direction:column;justify-content:center;align-items:center;z-index:100;text-align:center;background:rgba(0,0,0,0.96)">
+  <h1 style="color:#ffee44">タイムアップ！</h1>
+  <p id="clearText" style="font-size:33px;margin:20px 0;line-height:1.4"></p>
+  <button onclick="restartGame()">もう一度プレイ</button>
 </div>
 
 <script>
-// =============== 知らんフォント v2.0 ===============
+// 知らんフォント v2.8 - 単体HTML完全版
 const canvas = document.getElementById('game');
 const ctx = canvas.getContext('2d');
 const W = 800, H = 600;
+let score = 0, level = 1, timeLeft = 60, correctCount = 0, playerX = W/2 - 30;
+let bullets = [], enemies = [], gameRunning = false, currentTaskIndex = 0;
+let lastTime = Date.now(), highScore = localStorage.getItem('fontfallHigh') || 0;
 
-let score = 0, level = 1, timeLeft = 60;
-let correctCount = 0;
-let playerX = W/2 - 30;
-let bullets = [], enemies = [], enemyBullets = [];
-let gameRunning = false;
-let currentTaskIndex = 0;
-
-const fonts = ["'Noto Serif JP', serif","'Noto Sans JP', sans-serif","'Kosugi Maru', sans-serif","'Yuji Syuku', cursive","'M PLUS Rounded 1c', sans-serif","serif"];
+const fonts = ["'Noto Serif JP', serif","'Noto Sans JP', sans-serif","'Kosugi Maru', sans-serif","'Yuji Syuku', cursive","'M PLUS Rounded 1c', sans-serif","'Shippori Mincho', serif"];
 const taskNames = ["游明朝","源ノ角ゴシック","筑紫明朝","秀英明朝","AXIS Font","小塚明朝","リュウミン","IPA明朝"];
 const chars = "あいうえおかきくけこさしすせそたちつてとなにぬねのはひふへほまみむめもやゆよらりるれろわんアイウエオカキクケコABCDEFGHIJKLMNOPQRSTUVWXYZ!?".split("");
 
-const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+let audioCtx = null;
 
-function playSound(type) {
-  const osc = audioCtx.createOscillator();
-  const gain = audioCtx.createGain();
-  osc.connect(gain); gain.connect(audioCtx.destination);
-  if (type === "shoot") { osc.type = 'sawtooth'; osc.frequency.value = 850; gain.gain.value = 0.25; }
-  else if (type === "hit") { osc.type = 'sine'; osc.frequency.value = 1650; gain.gain.value = 0.6; }
-  else if (type === "miss") { osc.type = 'sawtooth'; osc.frequency.value = 320; gain.gain.value = 0.4; }
-  gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.35);
-  osc.start(); osc.stop(audioCtx.currentTime + 0.5);
+function initAudio() { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); }
+function playSound(t) {
+  if (!audioCtx) return;
+  const o = audioCtx.createOscillator(), g = audioCtx.createGain();
+  o.connect(g); g.connect(audioCtx.destination);
+  if (t === "shoot") { o.type = "sawtooth"; o.frequency.value = 850; g.gain.value = 0.25; }
+  else if (t === "hit") { o.type = "sine"; o.frequency.value = 1650; g.gain.value = 0.6; }
+  else if (t === "miss") { o.type = "sawtooth"; o.frequency.value = 320; g.gain.value = 0.4; }
+  g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.35);
+  o.start(); o.stop(audioCtx.currentTime + 0.5);
 }
-
-function getTaskName() { return taskNames[currentTaskIndex % taskNames.length]; }
 
 function updateTaskDisplay() {
   const el = document.getElementById('task');
   el.style.fontFamily = fonts[currentTaskIndex % fonts.length];
-  el.textContent = getTaskName();
+  el.textContent = taskNames[currentTaskIndex % taskNames.length];
 }
 
-function drawPlayer(x) {
+function drawPlayer() {
   ctx.save();
-  ctx.translate(x + 30, H - 60);
+  ctx.translate(playerX + 30, H - 60);
   ctx.fillStyle = '#ff66aa';
   ctx.beginPath(); ctx.ellipse(0, 0, 28, 22, 0, 0, Math.PI*2); ctx.fill();
   ctx.fillStyle = '#fff';
@@ -119,15 +98,9 @@ function drawPlayer(x) {
 
 function createEnemy() {
   const char = chars[Math.floor(Math.random()*chars.length)];
-  const fontIndex = Math.floor(Math.random()*fonts.length);
-  const isCorrect = fontIndex === (currentTaskIndex % fonts.length);
-  enemies.push({
-    x: Math.random()*(W-100)+50, y: -60, char: char,
-    font: fonts[fontIndex], size: 36 + Math.random()*26,
-    speed: 1.35 + level*0.12, isCorrect: isCorrect,
-    offset: Math.random()*Math.PI*2, waveType: Math.random()<0.4?1:0,
-    attacked: false
-  });
+  const fi = Math.floor(Math.random()*fonts.length);
+  const isCorrect = fi === (currentTaskIndex % fonts.length);
+  enemies.push({x: Math.random()*(W-100)+50, y: -60, char, font: fonts[fi], size: 36 + Math.random()*26, speed: 1.4 + level*0.13, isCorrect, offset: Math.random()*Math.PI*2, waveType: Math.random()<0.4?1:0});
 }
 
 function shoot() {
@@ -136,16 +109,20 @@ function shoot() {
 }
 
 function startGame() {
+  if (!audioCtx) initAudio();
+  if (audioCtx.state === "suspended") audioCtx.resume();
   document.getElementById('startScreen').style.display = 'none';
   document.getElementById('ui').style.display = 'block';
   resetGame();
   gameRunning = true;
+  lastTime = Date.now();
 }
 
 function resetGame() {
-  score = 0; correctCount = 0; timeLeft = 60;
-  enemies = []; bullets = []; enemyBullets = [];
+  score = 0; correctCount = 0; timeLeft = 60; level = 1;
+  enemies = []; bullets = [];
   playerX = W/2 - 30;
+  currentTaskIndex = 0;
   updateTaskDisplay();
 }
 
@@ -153,52 +130,44 @@ function checkLevelUp() {
   if (correctCount >= 12) {
     currentTaskIndex = (currentTaskIndex + 1) % taskNames.length;
     correctCount = 0;
+    level = Math.floor(currentTaskIndex / 3) + 1;
     updateTaskDisplay();
   }
 }
 
 function update() {
   if (!gameRunning) return;
+  const now = Date.now();
+  if (now - lastTime >= 1000) { timeLeft = Math.max(0, timeLeft - 1); lastTime = now; }
 
   ctx.fillStyle = '#fff0e0'; ctx.fillRect(0,0,W,H);
   const g = ctx.createLinearGradient(0,0,0,H);
   g.addColorStop(0,'#ff99ee'); g.addColorStop(1,'#88ddff');
   ctx.globalAlpha = 0.35; ctx.fillStyle = g; ctx.fillRect(0,0,W,H); ctx.globalAlpha = 1;
 
-  if (Math.random() < 0.04) timeLeft--;
-  if (timeLeft <= 0) {
-    gameRunning = false;
-    document.getElementById('clearText').innerHTML = `タイムアップ！<br>最終スコア ${score}`;
-    document.getElementById('clearScreen').style.display = 'flex';
-  }
-
-  // 敵更新（省略）
   for (let i = enemies.length-1; i >= 0; i--) {
-    const e = enemies[i];
-    e.y += e.speed;
-    if (e.waveType === 0) e.x += Math.sin(e.y * 0.085 + e.offset) * 2.8;
-    else e.x += Math.sin(e.y * 0.055 + e.offset) * 4.2;
-
+    const en = enemies[i];
+    en.y += en.speed;
+    if (en.waveType === 0) en.x += Math.sin(en.y*0.085 + en.offset)*2.8;
+    else en.x += Math.sin(en.y*0.055 + en.offset)*4.2;
     ctx.save();
-    ctx.font = `${e.size}px ${e.font}`;
-    ctx.fillStyle = e.isCorrect ? '#ffee44' : '#ff88cc';
-    ctx.shadowBlur = 24; ctx.shadowColor = e.isCorrect ? '#ff0' : '#f0f';
-    ctx.fillText(e.char, Math.max(20, Math.min(W-40, e.x)), e.y);
+    ctx.font = en.size + 'px ' + en.font;
+    ctx.fillStyle = en.isCorrect ? '#ffee44' : '#ff88cc';
+    ctx.shadowBlur = en.isCorrect ? 35 : 15;
+    ctx.shadowColor = en.isCorrect ? '#ffff00' : '#ff44aa';
+    ctx.fillText(en.char, Math.max(20, Math.min(W-40, en.x)), en.y);
     ctx.restore();
-
-    if (e.y > H + 70) enemies.splice(i,1);
+    if (en.y > H + 70) enemies.splice(i,1);
   }
 
-  // 自弾
-  for (let i=bullets.length-1; i>=0; i--) {
+  for (let i = bullets.length-1; i >= 0; i--) {
     const b = bullets[i]; b.y -= b.speed;
     ctx.fillStyle = '#222'; ctx.beginPath(); ctx.arc(b.x, b.y, 9, 0, Math.PI*2); ctx.fill();
-    if (b.y < -30) {bullets.splice(i,1); continue;}
-
-    for (let j=enemies.length-1; j>=0; j--) {
-      const e = enemies[j];
-      if (Math.hypot(b.x - e.x, b.y - e.y) < e.size*0.78) {
-        if (e.isCorrect) {
+    if (b.y < -30) { bullets.splice(i,1); continue; }
+    for (let j = enemies.length-1; j >= 0; j--) {
+      const en = enemies[j];
+      if (Math.hypot(b.x - en.x, b.y - en.y) < en.size * 0.78) {
+        if (en.isCorrect) {
           score += 150 + level*45;
           correctCount++;
           playSound("hit");
@@ -206,48 +175,41 @@ function update() {
         } else {
           score = Math.max(0, score - 85);
           playSound("miss");
-          const missEl = document.getElementById('missInfo');
-          missEl.textContent = `× ${taskNames[fonts.indexOf(e.font)] || '誤フォント'}`;
-          missEl.style.opacity = 1;
-          setTimeout(() => missEl.style.opacity = 0, 1400);
+          const m = document.getElementById('missInfo');
+          m.textContent = '× ' + (taskNames[fonts.indexOf(en.font)] || '誤フォント');
+          m.style.opacity = 1;
+          setTimeout(() => m.style.opacity = 0, 1400);
         }
         enemies.splice(j,1); bullets.splice(i,1); break;
       }
     }
   }
 
-  drawPlayer(playerX);
+  drawPlayer();
   document.getElementById('score').textContent = score;
-  document.getElementById('level').textContent = `レベル ${level}`;
+  document.getElementById('level').textContent = 'レベル ' + level;
+
+  if (timeLeft <= 0) {
+    gameRunning = false;
+    if (score > highScore) {
+      highScore = score;
+      localStorage.setItem('fontfallHigh', highScore);
+    }
+    document.getElementById('clearText').innerHTML = `最終スコア <strong>${score}</strong><br>ハイスコア <strong>${highScore}</strong>`;
+    document.getElementById('clearScreen').style.display = 'flex';
+  }
 
   if (enemies.length < 8 && Math.random() < 0.28) createEnemy();
 }
 
 function loop() { update(); requestAnimationFrame(loop); }
-loop();
-
-// コントロール
-window.addEventListener('keydown', e => {
-  if (!gameRunning) return;
-  if (e.key === 'ArrowLeft' || e.key === 'a') playerX -= 35;
-  if (e.key === 'ArrowRight' || e.key === 'd') playerX += 35;
-  if (e.key === ' ' || e.key === 'Enter') shoot();
-});
-
-canvas.addEventListener('pointermove', e => {
-  if (!gameRunning) return;
-  const rect = canvas.getBoundingClientRect();
-  playerX = Math.max(20, Math.min(W-70, e.clientX - rect.left - 30));
-});
-
-canvas.addEventListener('pointerdown', () => { if(gameRunning) shoot(); });
-
 function restartGame() {
   document.getElementById('clearScreen').style.display = 'none';
   document.getElementById('ui').style.display = 'none';
   document.getElementById('startScreen').style.display = 'flex';
 }
-</script>
 
+loop();
+</script>
 </body>
 </html>
