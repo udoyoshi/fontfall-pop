@@ -1,74 +1,59 @@
-<!DOCTYPE html>
-<html lang="ja">
-<head>
-<meta charset="UTF-8">
-<title>知らんフォント</title>
-<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@700&family=Noto+Sans+JP:wght@900&family=Kosugi+Maru&family=Yuji+Syuku&family=M+PLUS+Rounded+1c:wght@800&family=DotGothic16&display=swap" rel="stylesheet">
-<style>
-  body { margin:0; background:#000; padding:20px 0; display:flex; justify-content:center; }
-  #wrap { position:relative; width:100%; max-width:800px; aspect-ratio:4/3; background:#000; border:4px solid #fff; overflow:hidden; font-family:'DotGothic16',sans-serif; color:#fff; }
-  canvas { display:block; width:100%; height:100%; }
-</style>
-</head>
-<body>
+<div style="width:100%;max-width:820px;margin:40px auto;background:#000;padding:20px 0;display:flex;justify-content:center;box-sizing:border-box;">
+  <div style="position:relative;width:100%;max-width:800px;background:#000;border:4px solid #fff;overflow:hidden;">
+    <canvas id="game" width="800" height="600" style="display:block;width:100%;height:auto;"></canvas>
 
-<div id="wrap">
-  <canvas id="game" width="800" height="600"></canvas>
-
-  <!-- スタート画面 -->
-  <div id="startScreen" style="position:absolute;inset:0;background:rgba(0,0,0,0.92);display:flex;flex-direction:column;justify-content:center;align-items:center;z-index:100;text-align:center;">
-    <h1 style="color:#0ff;font-size:52px;margin:0;text-shadow:2px 2px 0 #f0f;font-family:'Shippori Mincho',serif;">知らんフォント</h1>
-    <p style="margin:8px 0 25px;color:#ff0;">v3.3</p>
-    <div style="border:2px solid #0ff;padding:20px;max-width:520px;text-align:left;line-height:1.7;font-size:15px;">
-      上部の課題フォントと同じ書体の文字を撃て！<br>
-      <span style="color:#ff0;">黄色い文字</span>を中心に正解を12個集めろ
+    <div id="startScreen" style="position:absolute;inset:0;background:rgba(0,0,0,0.92);display:flex;flex-direction:column;justify-content:center;align-items:center;z-index:100;text-align:center;color:#0ff;">
+      <h1 style="font-size:52px;margin:0;text-shadow:0 0 20px #f0f;font-family:'Shippori Mincho',serif;">知らんフォント</h1>
+      <p style="margin:10px 0 30px;color:#ff0;">v3.3</p>
+      <div style="max-width:520px;text-align:left;line-height:1.7;font-size:15.5px;color:#fff;border:2px solid #0ff;padding:20px;">
+        上部の課題フォントと同じ書体の<span style="color:#ff0;">黄色い文字</span>を撃て！<br>
+        正解12個で次のフォントへ
+      </div>
+      <button onclick="startGame()" style="margin-top:30px;padding:16px 70px;background:#000;color:#0f0;border:3px solid #0f0;font-size:26px;cursor:pointer;">▶ GAME START</button>
     </div>
-    <button onclick="startGame()" style="margin-top:30px;padding:16px 60px;background:#000;color:#0f0;border:3px solid #0f0;font-size:26px;cursor:pointer;">▶ GAME START</button>
-  </div>
 
-  <!-- UI -->
-  <div id="ui" style="display:none;position:absolute;top:0;left:0;right:0;z-index:50;pointer-events:none;">
-    <div id="level" style="position:absolute;top:15px;left:25px;font-size:26px;color:#0ff;">LEVEL 1</div>
-    <div id="score" style="position:absolute;top:15px;right:25px;font-size:36px;color:#ff0;">0</div>
-    <div id="task" style="position:absolute;top:68px;left:50%;transform:translateX(-50%);font-size:54px;font-weight:bold;text-shadow:0 0 20px #ff0;"></div>
-    <div id="missInfo" style="position:absolute;top:145px;left:50%;transform:translateX(-50%);font-size:28px;color:#f66;opacity:0;transition:opacity 0.6s;"></div>
-  </div>
+    <div id="ui" style="display:none;position:absolute;top:0;left:0;right:0;z-index:50;pointer-events:none;color:#fff;">
+      <div id="level" style="position:absolute;top:18px;left:30px;font-size:28px;color:#0ff;">LEVEL 1</div>
+      <div id="score" style="position:absolute;top:18px;right:30px;font-size:38px;color:#ff0;">0</div>
+      <div id="task" style="position:absolute;top:72px;left:50%;transform:translateX(-50%);font-size:54px;font-weight:bold;text-shadow:0 0 20px #ff0;"></div>
+      <div id="missInfo" style="position:absolute;top:150px;left:50%;transform:translateX(-50%);font-size:28px;color:#f66;opacity:0;transition:opacity 0.6s;"></div>
+    </div>
 
-  <!-- 終了画面 -->
-  <div id="clearScreen" style="display:none;position:absolute;inset:0;background:rgba(0,0,0,0.92);z-index:100;display:flex;flex-direction:column;justify-content:center;align-items:center;">
-    <h1 style="color:#f0f;font-size:48px;">TIME UP</h1>
-    <p id="clearText" style="font-size:32px;margin:20px 0;color:#ff0;"></p>
-    <button onclick="restartGame()" style="padding:14px 50px;background:#000;color:#0f0;border:3px solid #0f0;font-size:22px;cursor:pointer;">RESTART</button>
+    <div id="clearScreen" style="display:none;position:absolute;inset:0;background:rgba(0,0,0,0.92);z-index:100;display:flex;flex-direction:column;justify-content:center;align-items:center;">
+      <h1 style="color:#f0f;font-size:48px;">TIME UP</h1>
+      <p id="clearText" style="font-size:32px;margin:20px 0;color:#ff0;"></p>
+      <button onclick="restartGame()" style="padding:14px 60px;background:#000;color:#0f0;border:3px solid #0f0;font-size:22px;cursor:pointer;">RESTART</button>
+    </div>
   </div>
 </div>
 
 <script>
-// 参考コードのスタイルを尊重したシンプル実装
+// v3.3 - 黒背景ネオン版
 const canvas = document.getElementById('game');
 const ctx = canvas.getContext('2d');
 const W = 800, H = 600;
 
 let score = 0, level = 1, timeLeft = 60, correctCount = 0, playerX = W/2 - 30;
 let bullets = [], enemies = [], gameRunning = false, currentTaskIndex = 0;
-let lastTime = Date.now(), highScore = localStorage.getItem('fontfallHigh') || 0;
-let isMuted = false;
+let lastTime = Date.now();
 
 const fonts = ["'Shippori Mincho', serif","'Noto Sans JP', sans-serif","'Kosugi Maru', sans-serif","'Yuji Syuku', cursive","'M PLUS Rounded 1c', sans-serif","'Shippori Mincho', serif"];
 const taskNames = ["游明朝","源ノ角ゴシック","筑紫明朝","秀英明朝","AXIS Font","小塚明朝","リュウミン","IPA明朝"];
 const chars = "あいうえおかきくけこさしすせそたちつてとなにぬねのはひふへほまみむめもやゆよらりるれろわんアイウエオカキクケコABCDEFGHIJKLMNOPQRSTUVWXYZ!?".split("");
 
 let audioCtx = null;
+let isMuted = false;
 
 function initAudio() { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); }
 
 function playSound(type) {
   if (isMuted || !audioCtx) return;
-  const osc = audioCtx.createOscillator(), gain = audioCtx.createGain();
-  osc.connect(gain); gain.connect(audioCtx.destination);
-  if (type === "shoot") { osc.type = 'sawtooth'; osc.frequency.value = 880; gain.gain.value = 0.25; }
-  else if (type === "hit") { osc.type = 'sine'; osc.frequency.value = 1680; gain.gain.value = 0.6; }
-  else if (type === "miss") { osc.type = 'sawtooth'; osc.frequency.value = 220; gain.gain.value = 0.4; }
-  gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.35);
+  const osc = audioCtx.createOscillator(), g = audioCtx.createGain();
+  osc.connect(g); g.connect(audioCtx.destination);
+  osc.type = type === "hit" ? "sine" : "sawtooth";
+  osc.frequency.value = type === "hit" ? 1600 : 820;
+  g.gain.value = 0.3;
+  g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.3);
   osc.start(); osc.stop(audioCtx.currentTime + 0.4);
 }
 
@@ -82,13 +67,13 @@ function drawPlayer() {
   ctx.save();
   ctx.translate(playerX + 30, H - 65);
   ctx.fillStyle = '#ff33aa';
-  ctx.beginPath(); ctx.ellipse(0, 0, 28, 22, 0, 0, Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.ellipse(0,0,28,22,0,0,Math.PI*2); ctx.fill();
   ctx.fillStyle = '#fff';
-  ctx.beginPath(); ctx.arc(-10, -8, 7, 0, Math.PI*2); ctx.fill();
-  ctx.beginPath(); ctx.arc(10, -8, 7, 0, Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.arc(-10,-8,7,0,Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.arc(10,-8,7,0,Math.PI*2); ctx.fill();
   ctx.fillStyle = '#000';
-  ctx.beginPath(); ctx.arc(-10, -8, 4, 0, Math.PI*2); ctx.fill();
-  ctx.beginPath(); ctx.arc(10, -8, 4, 0, Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.arc(-10,-8,4,0,Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.arc(10,-8,4,0,Math.PI*2); ctx.fill();
   ctx.restore();
 }
 
@@ -96,21 +81,16 @@ function createEnemy() {
   const char = chars[Math.floor(Math.random()*chars.length)];
   const fi = Math.floor(Math.random()*fonts.length);
   const isCorrect = fi === (currentTaskIndex % fonts.length);
-  enemies.push({
-    x: Math.random()*(W-100)+50, y: -60, char,
-    font: fonts[fi], size: 40 + Math.random()*22,
-    speed: 1.55 + level*0.15, isCorrect
-  });
+  enemies.push({x: Math.random()*(W-100)+50, y:-60, char, font:fonts[fi], size:42+Math.random()*22, speed:1.6+level*0.15, isCorrect});
 }
 
 function shoot() {
-  bullets.push({x: playerX+30, y: H-90, speed: 16});
+  bullets.push({x:playerX+30, y:H-90, speed:16});
   playSound("shoot");
 }
 
 function startGame() {
   if (!audioCtx) initAudio();
-  if (audioCtx.state === "suspended") audioCtx.resume();
   document.getElementById('startScreen').style.display = 'none';
   document.getElementById('ui').style.display = 'block';
   resetGame();
@@ -138,7 +118,7 @@ function checkLevelUp() {
 function update() {
   if (!gameRunning) return;
   const now = Date.now();
-  if (now - lastTime >= 1000) { timeLeft = Math.max(0, timeLeft - 1); lastTime = now; }
+  if (now - lastTime >= 1000) { timeLeft = Math.max(0, timeLeft-1); lastTime = now; }
 
   ctx.fillStyle = '#0a0014'; ctx.fillRect(0,0,W,H);
 
@@ -148,7 +128,7 @@ function update() {
     ctx.save();
     ctx.font = `${e.size}px ${e.font}`;
     ctx.fillStyle = e.isCorrect ? '#ffee00' : '#ff66cc';
-    ctx.shadowBlur = e.isCorrect ? 25 : 10;
+    ctx.shadowBlur = e.isCorrect ? 30 : 12;
     ctx.shadowColor = e.isCorrect ? '#ff0' : '#f0f';
     ctx.fillText(e.char, e.x, e.y);
     ctx.restore();
@@ -192,7 +172,7 @@ function update() {
     document.getElementById('clearScreen').style.display = 'flex';
   }
 
-  if (enemies.length < 8 && Math.random() < 0.3) createEnemy();
+  if (enemies.length < 8 && Math.random() < 0.28) createEnemy();
 }
 
 function loop() { update(); requestAnimationFrame(loop); }
@@ -202,24 +182,6 @@ function restartGame() {
   document.getElementById('startScreen').style.display = 'flex';
 }
 
-document.getElementById('muteBtn') && (document.getElementById('muteBtn').onclick = () => { isMuted = !isMuted; });
-
-window.addEventListener('keydown', e => {
-  if (!gameRunning) return;
-  if (e.key === 'ArrowLeft' || e.key === 'a') playerX -= 35;
-  if (e.key === 'ArrowRight' || e.key === 'd') playerX += 35;
-  if (e.key === ' ' || e.key === 'Enter') shoot();
-});
-
-canvas.addEventListener('pointermove', e => {
-  if (!gameRunning) return;
-  const rect = canvas.getBoundingClientRect();
-  playerX = Math.max(20, Math.min(W-70, e.clientX - rect.left - 30));
-});
-
-canvas.addEventListener('pointerdown', () => { if(gameRunning) shoot(); });
-
 loop();
 </script>
-</body>
-</html>
+</div>
