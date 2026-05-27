@@ -1,244 +1,1621 @@
-<!DOCTYPE html>
-<html lang="ja">
-<head>
-<meta charset="UTF-8">
-<title>知らんフォント</title>
-<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@700&family=Noto+Sans+JP:wght@900&family=Kosugi+Maru&family=Yuji+Syuku&family=M+PLUS+Rounded+1c:wght@800&family=DotGothic16&family=Reggae+One&family=Hachi+Maru+Pop&display=swap" rel="stylesheet">
-<style>
-  body { margin:0; background:#000; padding:20px 0; display:flex; justify-content:center; box-sizing:border-box; }
-  #sf-wrap { 
-    position:relative; width:100%; max-width:800px; aspect-ratio:4/3; background:#000; 
-    border:4px solid #fff; overflow:hidden; font-family:'DotGothic16',sans-serif; color:#fff;
-    user-select:none; -webkit-user-select:none;
-  }
-  canvas { display:block; width:100%; height:100%; }
-</style>
-</head>
-<body>
+<!-- File: index.html -->
+<div class="sf-game-box" data-sf-game-box>
+  <style>
+    .sf-game-box {
+      width: 100%;
+      max-width: 800px;
+      margin: 24px auto;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color: #fff;
+    }
 
-<div id="sf-wrap">
-  <canvas id="sf-canvas" width="800" height="600"></canvas>
+    .sf-game {
+      position: relative;
+      width: 100%;
+      aspect-ratio: 4 / 3;
+      overflow: hidden;
+      background:
+        radial-gradient(circle at 50% 20%, rgba(80, 160, 255, 0.22), transparent 36%),
+        linear-gradient(180deg, #081225 0%, #02040a 100%);
+      border: 3px solid rgba(255, 255, 255, 0.9);
+      border-radius: 18px;
+      user-select: none;
+      -webkit-user-select: none;
+      touch-action: none;
+      box-shadow: 0 18px 45px rgba(0, 0, 0, 0.35);
+    }
 
-  <div id="sf-start" style="position:absolute;inset:0;background:rgba(0,0,0,0.92);display:flex;flex-direction:column;justify-content:center;align-items:center;z-index:1000;text-align:center;padding:10px;box-sizing:border-box;">
-    <h1 style="color:#0ff;font-size:clamp(28px,6vw,54px);margin:0;text-shadow:2px 2px 0 #f0f;font-family:'Shippori Mincho',serif;">知らんフォント</h1>
-    <p style="margin:5px 0 15px;font-size:16px;">v3.3 FONT EDITION</p>
-    <div style="border:2px solid #fff;padding:15px;text-align:left;font-size:12px;line-height:1.6;margin-bottom:20px;max-width:90%;">
-      目的：上部の課題フォントと同じ書体の文字を撃て<br>
-      操作：左右移動、スペースかタップで発射<br>
-      ・<span style="color:#ff0;">黄色文字</span>がターゲット<br>
-      ・誤射は減点<br>
-      ・正解12個で次のフォントへ
-    </div>
-    <button id="sf-btn-start" style="padding:15px 30px;background:#000;color:#0f0;border:2px solid #0f0;font-size:24px;cursor:pointer;font-family:inherit;">START GAME</button>
-  </div>
+    .sf-game canvas {
+      display: block;
+      width: 100%;
+      height: 100%;
+      background: transparent;
+    }
 
-  <div id="sf-result" style="position:absolute;inset:0;background:rgba(0,0,0,0.92);display:none;flex-direction:column;justify-content:center;align-items:center;z-index:1000;text-align:center;padding:10px;box-sizing:border-box;">
-    <h1 id="sf-result-title" style="color:#f0f;font-size:clamp(24px,5vw,40px);margin:0;">TIME UP</h1>
-    <div id="sf-rank" style="color:#ff0;font-size:clamp(28px,6vw,48px);margin:10px 0;">-</div>
-    <div id="sf-score-text" style="border:2px solid #0ff;padding:10px 20px;font-size:14px;line-height:1.6;margin-bottom:15px;"></div>
-    <button id="sf-btn-title" style="padding:10px 20px;background:#000;color:#0f0;border:2px solid #0f0;font-size:16px;cursor:pointer;font-family:inherit;">TITLEに戻る</button>
-  </div>
-</div>
+    .sf-hud {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      z-index: 2;
+    }
 
-<script>
-window.addEventListener('DOMContentLoaded', function() {
-(function(){
-"use strict";
+    .sf-topbar {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      right: 10px;
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      gap: 8px;
+      align-items: start;
+      font-size: clamp(11px, 2vw, 14px);
+      text-shadow: 0 2px 6px rgba(0, 0, 0, 0.8);
+    }
 
-var FONT_DATA = [
-  {name:"游明朝",     css:"'Shippori Mincho', serif"},
-  {name:"源ノ角ゴシック", css:"'Noto Sans JP', sans-serif"},
-  {name:"筑紫明朝",   css:"'Shippori Mincho', serif"},
-  {name:"秀英明朝",   css:"'Shippori Mincho', serif"},
-  {name:"AXIS Font",    css:"'Noto Sans JP', sans-serif"},
-  {name:"小塚明朝",    css:"'Shippori Mincho', serif"},
-  {name:"リュウミン",     css:"'Shippori Mincho', serif"},
-  {name:"IPA明朝",  css:"'Shippori Mincho', serif"}
-];
+    .sf-panel {
+      padding: 8px 10px;
+      background: rgba(0, 0, 0, 0.42);
+      border: 1px solid rgba(255, 255, 255, 0.28);
+      border-radius: 12px;
+      backdrop-filter: blur(6px);
+    }
 
-var CHARS = "あいうえおかきくけこさしすせそたちつてとなにぬねのはひふへほまみむめもやゆよらりるれろわんアイウエオカキクケコABCDEFGHIJKLMNOPQRSTUVWXYZ!?".split("");
+    .sf-target {
+      text-align: center;
+      min-width: 160px;
+    }
 
-var game = {
-  running:false, score:0, level:1, time:60, hp:3, cor:0, task:0,
-  combo:0, maxC:0, px:370, shots:0, hit:0, tutEnd:0,
-  enemies:[], bullets:[], eb:[], particles:[], stars:[],
-  cleared:[], feverEnd:0, flash:0, keyL:false, keyR:false,
-  banner:null
-};
-var lastTime = 0;
-var audioCtx = null;
-var rafId = null;
+    .sf-target-name {
+      display: block;
+      margin-top: 3px;
+      color: #ffe66b;
+      font-size: clamp(16px, 3vw, 24px);
+      line-height: 1.1;
+    }
 
-function ensureAudio(){
-  if(!audioCtx){
-    try { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); }
-    catch(e){ return; }
-  }
-  if(audioCtx.state === 'suspended') audioCtx.resume();
-}
+    .sf-right {
+      text-align: right;
+    }
 
-function playSound(type){
-  if(!audioCtx) return;
-  var osc = audioCtx.createOscillator();
-  var gain = audioCtx.createGain();
-  osc.connect(gain); gain.connect(audioCtx.destination);
-  var now = audioCtx.currentTime;
-  var f0=440, f1=440, vol=0.1, dur=0.1, w='square';
-  if(type==='shoot'){ f0=880; f1=440; vol=0.1; dur=0.1; }
-  else if(type==='hit'){ f0=1200; f1=2000; vol=0.15; dur=0.12; }
-  else if(type==='miss'){ f0=200; f1=80; vol=0.18; dur=0.25; w='sawtooth'; }
-  osc.type = w;
-  osc.frequency.setValueAtTime(f0, now);
-  osc.frequency.exponentialRampToValueAtTime(f1, now+dur);
-  gain.gain.setValueAtTime(vol, now);
-  gain.gain.exponentialRampToValueAtTime(0.001, now+dur+0.05);
-  osc.start(now);
-  osc.stop(now+dur+0.1);
-}
+    .sf-hp {
+      letter-spacing: 1px;
+      color: #ff7b9c;
+    }
 
-function isCleared(idx){
-  for(var i=0;i<game.cleared.length;i++){ if(game.cleared[i]===idx) return true; }
-  return false;
-}
+    .sf-mini-bar {
+      height: 7px;
+      margin-top: 5px;
+      overflow: hidden;
+      background: rgba(255, 255, 255, 0.16);
+      border-radius: 999px;
+    }
 
-function spawnEnemy(){
-  var isCorrect = Math.random() < 0.45;
-  var fontIdx = game.task;
-  if(!isCorrect){
-    do { fontIdx = Math.floor(Math.random()*8); } while(fontIdx === game.task);
-  }
-  game.enemies.push({
-    x: Math.random()*620+60, y: -60,
-    char: CHARS[Math.floor(Math.random()*CHARS.length)],
-    fontIdx: fontIdx, font: FONT_DATA[fontIdx].css,
-    size: 44 + Math.random()*18,
-    speed: 1.8 + game.level*0.15,
-    isCorrect: isCorrect,
-    offset: Math.random()*Math.PI*2,
-    waveAmp: Math.random()*4 + 1
-  });
-}
+    .sf-mini-bar-inner {
+      width: 0%;
+      height: 100%;
+      background: linear-gradient(90deg, #55e7ff, #fff06a, #ff75d8);
+      border-radius: 999px;
+      transition: width 0.12s linear;
+    }
 
-function shoot(){
-  if(!game.running) return;
-  game.shots++;
-  game.bullets.push({ x: game.px+30, y: 520, speed: 720 });
-  playSound("shoot");
-}
+    .sf-outside-panel {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      align-items: stretch;
+      margin-top: 10px;
+    }
 
-function startGame(){
-  ensureAudio();
-  document.getElementById('sf-start').style.display = 'none';
-  game.running = true;
-  game.score = 0; game.level = 1; game.time = 60; game.cor = 0;
-  game.task = Math.floor(Math.random()*8);
-  game.px = 370;
-  game.enemies = []; game.bullets = [];
-  lastTime = performance.now();
-  if(rafId) cancelAnimationFrame(rafId);
-  rafId = requestAnimationFrame(loop);
-}
+    .sf-outside-card {
+      padding: 10px 12px;
+      background: #071126;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 14px;
+      color: #fff;
+      font-size: 13px;
+      line-height: 1.55;
+      box-shadow: 0 10px 26px rgba(0, 0, 0, 0.18);
+    }
 
-function endGame(){
-  game.running = false;
-  document.getElementById('sf-result-title').textContent = "TIME UP";
-  document.getElementById('sf-rank').textContent = game.score;
-  document.getElementById('sf-score-text').innerHTML = "SCORE " + game.score;
-  document.getElementById('sf-result').style.display = 'flex';
-}
+    .sf-stat-row {
+      display: grid;
+      grid-template-columns: 92px 1fr 62px;
+      gap: 8px;
+      align-items: center;
+      margin-top: 8px;
+    }
 
-function loop(now){
-  if(!game.running) return;
-  var dt = Math.min((now - lastTime)/1000, 0.05);
-  lastTime = now;
-  var ctx = document.getElementById('sf-canvas').getContext('2d');
+    .sf-stat-label {
+      color: rgba(255, 255, 255, 0.86);
+    }
 
-  ctx.fillStyle = '#0a0a18';
-  ctx.fillRect(0, 0, 800, 600);
+    .sf-stat-number {
+      text-align: right;
+      font-variant-numeric: tabular-nums;
+      color: #ffe66b;
+      font-weight: 800;
+    }
 
-  // 敵
-  for(var i=game.enemies.length-1;i>=0;i--){
-    var e = game.enemies[i];
-    e.y += e.speed * dt * 60;
-    e.x += Math.sin(e.y*0.04 + e.offset) * e.waveAmp;
-    ctx.save();
-    ctx.font = "bold " + e.size + "px " + e.font;
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.fillStyle = e.isCorrect ? '#ff0' : '#aac';
-    ctx.shadowBlur = e.isCorrect ? 18 : 0;
-    ctx.shadowColor = '#ff0';
-    ctx.fillText(e.char, e.x, e.y);
-    ctx.restore();
-    if(e.y > 680) game.enemies.splice(i, 1);
-  }
+    .sf-stat-bar {
+      height: 10px;
+      overflow: hidden;
+      background: rgba(255, 255, 255, 0.13);
+      border-radius: 999px;
+    }
 
-  // 自弾
-  for(var i=game.bullets.length-1;i>=0;i--){
-    var b = game.bullets[i];
-    b.y -= b.speed * dt * 60;
-    ctx.fillStyle = '#fff';
-    ctx.fillRect(b.x-3, b.y-12, 6, 24);
-    if(b.y < -30){ game.bullets.splice(i, 1); continue; }
+    .sf-stat-bar-inner {
+      width: 0%;
+      height: 100%;
+      background: linear-gradient(90deg, #5ee7ff, #ffe66b);
+      border-radius: 999px;
+      transition: width 0.12s linear;
+    }
 
-    for(var j=game.enemies.length-1;j>=0;j--){
-      var e = game.enemies[j];
-      if(Math.hypot(b.x - e.x, b.y - e.y) < 30){
-        if(e.isCorrect){
-          game.score += 150;
-          game.cor++;
-          if(game.cor >= 12){
-            game.cor = 0;
-            game.level++;
-          }
-        } else {
-          game.score = Math.max(0, game.score - 85);
-        }
-        game.enemies.splice(j,1);
-        game.bullets.splice(i,1);
-        break;
+    .sf-control-card {
+      display: grid;
+      gap: 10px;
+    }
+
+    .sf-volume {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .sf-volume input {
+      width: 100%;
+      accent-color: #ffe66b;
+    }
+
+    .sf-bgm-button {
+      min-height: 36px;
+      border: 0;
+      border-radius: 999px;
+      background: linear-gradient(135deg, #9ff3ff, #88a8ff);
+      color: #071126;
+      font-weight: 800;
+      cursor: pointer;
+    }
+
+    .sf-overlay {
+      position: absolute;
+      inset: 0;
+      z-index: 5;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 18px;
+      background:
+        radial-gradient(circle at 50% 30%, rgba(32, 118, 255, 0.34), transparent 38%),
+        rgba(0, 0, 0, 0.72);
+      text-align: center;
+    }
+
+    .sf-card {
+      width: min(92%, 560px);
+      max-height: 94%;
+      overflow: auto;
+      padding: clamp(18px, 4vw, 32px);
+      background: rgba(4, 10, 24, 0.92);
+      border: 1px solid rgba(255, 255, 255, 0.32);
+      border-radius: 22px;
+      box-shadow: 0 18px 56px rgba(0, 0, 0, 0.45);
+    }
+
+    .sf-title {
+      margin: 0;
+      font-size: clamp(30px, 7vw, 56px);
+      line-height: 1;
+      letter-spacing: 0.02em;
+    }
+
+    .sf-subtitle {
+      margin: 10px 0 18px;
+      color: #bfe7ff;
+      font-size: clamp(13px, 2.4vw, 17px);
+      line-height: 1.65;
+    }
+
+    .sf-mode-list {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      margin: 18px 0;
+    }
+
+    .sf-button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 44px;
+      padding: 10px 14px;
+      border: 0;
+      border-radius: 999px;
+      background: linear-gradient(135deg, #ffe66b, #ff9f43);
+      color: #111;
+      font-weight: 800;
+      font-size: 15px;
+      cursor: pointer;
+      box-shadow: 0 8px 0 rgba(120, 70, 0, 0.55);
+      transform: translateY(0);
+    }
+
+    .sf-button:active {
+      transform: translateY(4px);
+      box-shadow: 0 4px 0 rgba(120, 70, 0, 0.55);
+    }
+
+    .sf-button-secondary {
+      background: linear-gradient(135deg, #9ff3ff, #88a8ff);
+      box-shadow: 0 8px 0 rgba(22, 51, 110, 0.58);
+    }
+
+    .sf-button-hard {
+      background: linear-gradient(135deg, #ffb1e5, #b69cff);
+      box-shadow: 0 8px 0 rgba(82, 33, 100, 0.58);
+    }
+
+    .sf-help {
+      margin: 16px 0 0;
+      color: rgba(255, 255, 255, 0.84);
+      font-size: 13px;
+      line-height: 1.7;
+      text-align: left;
+    }
+
+    .sf-volume-start {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      justify-content: center;
+      margin: 14px auto 0;
+      padding: 10px 14px;
+      width: min(100%, 360px);
+      background: rgba(255, 255, 255, 0.08);
+      border-radius: 999px;
+      font-size: 13px;
+    }
+
+    .sf-volume-start input {
+      width: 180px;
+      max-width: 52%;
+      accent-color: #ffe66b;
+    }
+
+    .sf-hidden {
+      display: none !important;
+    }
+
+    .sf-result-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+      margin: 16px 0;
+      text-align: left;
+    }
+
+    .sf-result-item {
+      padding: 10px;
+      background: rgba(255, 255, 255, 0.08);
+      border-radius: 12px;
+    }
+
+    .sf-adbox {
+      margin: 16px 0;
+      padding: 14px;
+      background: rgba(255, 230, 107, 0.12);
+      border: 1px solid rgba(255, 230, 107, 0.42);
+      border-radius: 14px;
+      color: #fff5b0;
+      font-size: 13px;
+      line-height: 1.6;
+      text-align: left;
+    }
+
+    @media (max-width: 560px) {
+      .sf-topbar {
+        grid-template-columns: 1fr 1fr;
+      }
+
+      .sf-target {
+        grid-column: 1 / 3;
+        order: 3;
+      }
+
+      .sf-mode-list,
+      .sf-result-grid,
+      .sf-outside-panel {
+        grid-template-columns: 1fr;
+      }
+
+      .sf-stat-row {
+        grid-template-columns: 82px 1fr 56px;
       }
     }
-  }
+  </style>
 
-  // 自機
-  ctx.save();
-  ctx.translate(game.px + 30, 540);
-  ctx.fillStyle = '#ff66aa';
-  ctx.beginPath(); ctx.ellipse(0,0,28,22,0,0,Math.PI*2); ctx.fill();
-  ctx.fillStyle = '#fff';
-  ctx.beginPath(); ctx.arc(-10,-8,7,0,Math.PI*2); ctx.fill();
-  ctx.beginPath(); ctx.arc(10,-8,7,0,Math.PI*2); ctx.fill();
-  ctx.restore();
+  <div class="sf-game" tabindex="0" aria-label="知らんフォント フォント判別シューティング">
+    <canvas class="sf-canvas" width="800" height="600"></canvas>
 
-  // 課題表示
-  ctx.save();
-  ctx.fillStyle = 'rgba(255,255,255,0.9)';
-  ctx.fillRect(240, 20, 320, 80);
-  ctx.fillStyle = '#222';
-  ctx.font = "bold 42px " + FONT_DATA[game.task].css;
-  ctx.textAlign = 'center';
-  ctx.fillText(FONT_DATA[game.task].name, 400, 72);
-  ctx.restore();
+    <div class="sf-hud" aria-hidden="true">
+      <div class="sf-topbar">
+        <div class="sf-panel">
+          <div>Score: <span class="sf-score">0</span></div>
+          <div>Combo: <span class="sf-combo">0</span></div>
+          <div class="sf-mini-bar">
+            <div class="sf-mini-bar-inner sf-combo-mini-bar"></div>
+          </div>
+        </div>
 
-  document.getElementById('score').textContent = game.score;
-  document.getElementById('level').textContent = "LEVEL " + game.level;
+        <div class="sf-panel sf-target">
+          <span>狙うフォント</span>
+          <strong class="sf-target-name">---</strong>
+        </div>
 
-  if(game.time <= 0){
-    endGame();
-  }
+        <div class="sf-panel sf-right">
+          <div>Time: <span class="sf-time">60.0</span></div>
+          <div class="sf-hp">HP: <span class="sf-hp-text">♥♥♥♥♥</span></div>
+          <div class="sf-mini-bar">
+            <div class="sf-mini-bar-inner sf-gauge-inner"></div>
+          </div>
+        </div>
+      </div>
+    </div>
 
-  if(game.enemies.length < 6 && Math.random() < 0.03){
-    // spawnEnemy();
-  }
+    <div class="sf-overlay sf-start">
+      <div class="sf-card">
+        <h2 class="sf-title">知らんフォント</h2>
+        <p class="sf-subtitle">
+          指定されたフォントだけを撃つ判別シューティング。<br>
+          画面クリック・タップ・Spaceキーで単発発射します。
+        </p>
 
-  rafId = requestAnimationFrame(loop);
-}
+        <div class="sf-mode-list">
+          <button class="sf-button" type="button" data-sf-start="easy">やさしい</button>
+          <button class="sf-button sf-button-secondary" type="button" data-sf-start="normal">ふつう</button>
+          <button class="sf-button sf-button-hard" type="button" data-sf-start="mania">マニア</button>
+        </div>
 
-document.getElementById('sf-btn-start').addEventListener('click', startGame);
+        <label class="sf-volume-start">
+          <span>音量</span>
+          <input class="sf-volume-range-start" type="range" min="0" max="100" value="55">
+        </label>
 
-})();
-});
-</script>
-</body>
-</html>
+        <div class="sf-help">
+          <strong>操作：</strong>マウス・タッチで左右移動。クリック・タップ・Spaceキーで発射。<br>
+          <strong>判定：</strong>文字の透明部分ではなく、実際に描かれたフォントのピクセルに触れた時だけ命中。<br>
+          <strong>BGM：</strong>ゲーム開始後に自動で鳴ります。下のボタンでON/OFFできます。
+        </div>
+      </div>
+    </div>
+
+    <div class="sf-overlay sf-result sf-hidden">
+      <div class="sf-card">
+        <h2 class="sf-title">RESULT</h2>
+        <div class="sf-result-body"></div>
+        <button class="sf-button sf-retry" type="button">もう一度遊ぶ</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="sf-outside-panel">
+    <div class="sf-outside-card">
+      <div><strong>MISSION / STATUS</strong></div>
+
+      <div class="sf-stat-row">
+        <div class="sf-stat-label">コンボ</div>
+        <div class="sf-stat-bar">
+          <div class="sf-stat-bar-inner sf-combo-bar"></div>
+        </div>
+        <div class="sf-stat-number sf-combo-number">0 / 12</div>
+      </div>
+
+      <div class="sf-stat-row">
+        <div class="sf-stat-label">撃破数</div>
+        <div class="sf-stat-bar">
+          <div class="sf-stat-bar-inner sf-kill-bar"></div>
+        </div>
+        <div class="sf-stat-number sf-kill-number">0 / 25</div>
+      </div>
+
+      <div class="sf-mission-1">□ ターゲットを25体撃破</div>
+      <div class="sf-mission-2">□ 12コンボ達成</div>
+      <div class="sf-mission-3">□ HP3以上で生存</div>
+    </div>
+
+    <div class="sf-outside-card sf-control-card">
+      <label class="sf-volume">
+        <span>音量</span>
+        <input class="sf-volume-range" type="range" min="0" max="100" value="55">
+      </label>
+
+      <button class="sf-bgm-button" type="button">BGM ON</button>
+    </div>
+  </div>
+
+  <script>
+    /* <![CDATA[ */
+    window.addEventListener("DOMContentLoaded", function () {
+      var roots = document.querySelectorAll(".sf-game-box[data-sf-game-box]");
+
+      roots.forEach(function (root) {
+        if (root.dataset.initialized === "1") {
+          return;
+        }
+
+        root.dataset.initialized = "1";
+
+        var game = root.querySelector(".sf-game");
+        var canvas = root.querySelector(".sf-canvas");
+        var ctx = canvas.getContext("2d");
+
+        var hitCanvas = document.createElement("canvas");
+        var hitCtx = hitCanvas.getContext("2d", {
+          willReadFrequently: true
+        });
+
+        var scoreEl = root.querySelector(".sf-score");
+        var comboEl = root.querySelector(".sf-combo");
+        var timeEl = root.querySelector(".sf-time");
+        var hpEl = root.querySelector(".sf-hp-text");
+        var targetEl = root.querySelector(".sf-target-name");
+        var gaugeEl = root.querySelector(".sf-gauge-inner");
+        var comboMiniBarEl = root.querySelector(".sf-combo-mini-bar");
+        var comboBarEl = root.querySelector(".sf-combo-bar");
+        var killBarEl = root.querySelector(".sf-kill-bar");
+        var comboNumberEl = root.querySelector(".sf-combo-number");
+        var killNumberEl = root.querySelector(".sf-kill-number");
+        var startOverlay = root.querySelector(".sf-start");
+        var resultOverlay = root.querySelector(".sf-result");
+        var resultBody = root.querySelector(".sf-result-body");
+        var retryButton = root.querySelector(".sf-retry");
+        var volumeRange = root.querySelector(".sf-volume-range");
+        var volumeRangeStart = root.querySelector(".sf-volume-range-start");
+        var bgmButton = root.querySelector(".sf-bgm-button");
+        var mission1El = root.querySelector(".sf-mission-1");
+        var mission2El = root.querySelector(".sf-mission-2");
+        var mission3El = root.querySelector(".sf-mission-3");
+
+        var WIDTH = 800;
+        var HEIGHT = 600;
+
+        var FONT_BANK = [
+          {
+            name: "角ゴシック",
+            family: '"Yu Gothic", "Hiragino Kaku Gothic ProN", "Meiryo", sans-serif',
+            weight: "800",
+            style: "normal"
+          },
+          {
+            name: "明朝",
+            family: '"Yu Mincho", "Hiragino Mincho ProN", "MS Mincho", serif',
+            weight: "700",
+            style: "normal"
+          },
+          {
+            name: "丸ゴシック",
+            family: '"Hiragino Maru Gothic ProN", "Yu Gothic", "Meiryo", sans-serif',
+            weight: "700",
+            style: "normal"
+          },
+          {
+            name: "等幅",
+            family: '"Menlo", "Consolas", "Osaka-Mono", monospace',
+            weight: "800",
+            style: "normal"
+          },
+          {
+            name: "筆文字風",
+            family: '"Yu Mincho", "HGS行書体", "Hiragino Mincho ProN", cursive, serif',
+            weight: "900",
+            style: "italic"
+          },
+          {
+            name: "ドット風",
+            family: '"Courier New", "Osaka-Mono", monospace',
+            weight: "900",
+            style: "normal"
+          }
+        ];
+
+        var CHARS = [
+          "あ",
+          "う",
+          "永",
+          "夢",
+          "蛸",
+          "海",
+          "書",
+          "風",
+          "明",
+          "丸",
+          "角",
+          "遊",
+          "星",
+          "花",
+          "祭",
+          "雲"
+        ];
+
+        var MODE_CONFIG = {
+          easy: {
+            label: "やさしい",
+            correctRate: 0.36,
+            spawnBase: 0.84,
+            enemySpeed: 1.0,
+            shotCooldown: 0.22,
+            hint: "strong"
+          },
+          normal: {
+            label: "ふつう",
+            correctRate: 0.30,
+            spawnBase: 0.72,
+            enemySpeed: 1.15,
+            shotCooldown: 0.25,
+            hint: "soft"
+          },
+          mania: {
+            label: "マニア",
+            correctRate: 0.25,
+            spawnBase: 0.62,
+            enemySpeed: 1.28,
+            shotCooldown: 0.28,
+            hint: "none"
+          }
+        };
+
+        var state = "ready";
+        var mode = "normal";
+        var lastTime = 0;
+        var rafId = 0;
+
+        var audioContext = null;
+        var masterGain = null;
+        var bgmGain = null;
+        var bgmTimer = null;
+        var bgmStep = 0;
+        var bgmEnabled = true;
+        var volume = 0.55;
+
+        var player;
+        var bullets;
+        var enemies;
+        var enemyBullets;
+        var particles;
+
+        var score;
+        var combo;
+        var maxCombo;
+        var hp;
+        var timeLeft;
+        var feverGauge;
+        var feverTime;
+        var spawnTimer;
+        var shotCooldownTimer;
+        var targetTimer;
+        var targetIndex;
+        var kills;
+        var correctHits;
+        var wrongHits;
+        var escapedTargets;
+        var pointerX;
+        var keyboardLeft;
+        var keyboardRight;
+
+        function clamp(value, min, max) {
+          return Math.max(min, Math.min(max, value));
+        }
+
+        function randomItem(list) {
+          return list[Math.floor(Math.random() * list.length)];
+        }
+
+        function buildFont(size, fontSpec) {
+          return [
+            fontSpec.style,
+            fontSpec.weight,
+            Math.round(size) + "px",
+            fontSpec.family
+          ].join(" ");
+        }
+
+        function initAudio() {
+          if (!audioContext) {
+            var AudioContextClass = window.AudioContext || window.webkitAudioContext;
+
+            if (!AudioContextClass) {
+              return;
+            }
+
+            audioContext = new AudioContextClass();
+
+            masterGain = audioContext.createGain();
+            masterGain.gain.value = volume;
+            masterGain.connect(audioContext.destination);
+
+            bgmGain = audioContext.createGain();
+            bgmGain.gain.value = 0.12;
+            bgmGain.connect(masterGain);
+          }
+
+          if (audioContext.state === "suspended") {
+            audioContext.resume();
+          }
+        }
+
+        function setVolume(nextVolume) {
+          volume = clamp(nextVolume, 0, 1);
+
+          if (masterGain) {
+            masterGain.gain.setTargetAtTime(volume, audioContext.currentTime, 0.01);
+          }
+
+          volumeRange.value = String(Math.round(volume * 100));
+          volumeRangeStart.value = String(Math.round(volume * 100));
+        }
+
+        function playTone(type) {
+          if (!audioContext || !masterGain || volume <= 0) {
+            return;
+          }
+
+          var now = audioContext.currentTime;
+          var osc = audioContext.createOscillator();
+          var gain = audioContext.createGain();
+
+          osc.connect(gain);
+          gain.connect(masterGain);
+
+          if (type === "shoot") {
+            osc.type = "square";
+            osc.frequency.setValueAtTime(720, now);
+            osc.frequency.exponentialRampToValueAtTime(980, now + 0.05);
+            gain.gain.setValueAtTime(0.0001, now);
+            gain.gain.exponentialRampToValueAtTime(0.16, now + 0.01);
+            gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.08);
+            osc.start(now);
+            osc.stop(now + 0.09);
+          }
+
+          if (type === "correct") {
+            osc.type = "sine";
+            osc.frequency.setValueAtTime(660, now);
+            osc.frequency.setValueAtTime(880, now + 0.06);
+            osc.frequency.setValueAtTime(1320, now + 0.12);
+            gain.gain.setValueAtTime(0.0001, now);
+            gain.gain.exponentialRampToValueAtTime(0.22, now + 0.015);
+            gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.22);
+            osc.start(now);
+            osc.stop(now + 0.24);
+          }
+
+          if (type === "wrong") {
+            osc.type = "sawtooth";
+            osc.frequency.setValueAtTime(240, now);
+            osc.frequency.exponentialRampToValueAtTime(90, now + 0.22);
+            gain.gain.setValueAtTime(0.0001, now);
+            gain.gain.exponentialRampToValueAtTime(0.2, now + 0.02);
+            gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.24);
+            osc.start(now);
+            osc.stop(now + 0.26);
+          }
+
+          if (type === "damage") {
+            osc.type = "triangle";
+            osc.frequency.setValueAtTime(130, now);
+            osc.frequency.exponentialRampToValueAtTime(55, now + 0.18);
+            gain.gain.setValueAtTime(0.0001, now);
+            gain.gain.exponentialRampToValueAtTime(0.18, now + 0.01);
+            gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.2);
+            osc.start(now);
+            osc.stop(now + 0.22);
+          }
+
+          if (type === "fever") {
+            osc.type = "sine";
+            osc.frequency.setValueAtTime(523.25, now);
+            osc.frequency.setValueAtTime(659.25, now + 0.08);
+            osc.frequency.setValueAtTime(783.99, now + 0.16);
+            osc.frequency.setValueAtTime(1046.5, now + 0.24);
+            gain.gain.setValueAtTime(0.0001, now);
+            gain.gain.exponentialRampToValueAtTime(0.23, now + 0.02);
+            gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.38);
+            osc.start(now);
+            osc.stop(now + 0.4);
+          }
+        }
+
+        function playBgmNote() {
+          if (!audioContext || !bgmGain || !bgmEnabled || state !== "playing") {
+            return;
+          }
+
+          var notes = [
+            220,
+            277.18,
+            329.63,
+            440,
+            329.63,
+            277.18,
+            196,
+            246.94
+          ];
+
+          var bassNotes = [
+            110,
+            110,
+            146.83,
+            146.83,
+            98,
+            98,
+            123.47,
+            123.47
+          ];
+
+          var now = audioContext.currentTime;
+          var note = notes[bgmStep % notes.length];
+          var bass = bassNotes[bgmStep % bassNotes.length];
+
+          var lead = audioContext.createOscillator();
+          var leadGain = audioContext.createGain();
+
+          lead.type = "triangle";
+          lead.frequency.setValueAtTime(note, now);
+          leadGain.gain.setValueAtTime(0.0001, now);
+          leadGain.gain.exponentialRampToValueAtTime(0.42, now + 0.02);
+          leadGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.22);
+          lead.connect(leadGain);
+          leadGain.connect(bgmGain);
+          lead.start(now);
+          lead.stop(now + 0.24);
+
+          if (bgmStep % 2 === 0) {
+            var bassOsc = audioContext.createOscillator();
+            var bassGain = audioContext.createGain();
+
+            bassOsc.type = "sine";
+            bassOsc.frequency.setValueAtTime(bass, now);
+            bassGain.gain.setValueAtTime(0.0001, now);
+            bassGain.gain.exponentialRampToValueAtTime(0.32, now + 0.03);
+            bassGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.42);
+            bassOsc.connect(bassGain);
+            bassGain.connect(bgmGain);
+            bassOsc.start(now);
+            bassOsc.stop(now + 0.44);
+          }
+
+          bgmStep += 1;
+        }
+
+        function startBgm() {
+          initAudio();
+          stopBgm();
+
+          if (!bgmEnabled) {
+            return;
+          }
+
+          bgmStep = 0;
+          playBgmNote();
+
+          bgmTimer = window.setInterval(function () {
+            playBgmNote();
+          }, 260);
+        }
+
+        function stopBgm() {
+          if (bgmTimer) {
+            window.clearInterval(bgmTimer);
+            bgmTimer = null;
+          }
+        }
+
+        function updateBgmButton() {
+          bgmButton.textContent = bgmEnabled ? "BGM ON" : "BGM OFF";
+        }
+
+        function setTargetFont() {
+          var next = Math.floor(Math.random() * FONT_BANK.length);
+
+          if (typeof targetIndex === "number" && FONT_BANK.length > 1) {
+            while (next === targetIndex) {
+              next = Math.floor(Math.random() * FONT_BANK.length);
+            }
+          }
+
+          targetIndex = next;
+          targetTimer = 15;
+          targetEl.textContent = FONT_BANK[targetIndex].name;
+          targetEl.style.fontFamily = FONT_BANK[targetIndex].family;
+          targetEl.style.fontStyle = FONT_BANK[targetIndex].style;
+          targetEl.style.fontWeight = FONT_BANK[targetIndex].weight;
+        }
+
+        function resetGame(nextMode) {
+          mode = nextMode || mode || "normal";
+
+          player = {
+            x: WIDTH / 2,
+            y: HEIGHT - 56,
+            invincible: 0
+          };
+
+          bullets = [];
+          enemies = [];
+          enemyBullets = [];
+          particles = [];
+
+          score = 0;
+          combo = 0;
+          maxCombo = 0;
+          hp = 5;
+          timeLeft = 60;
+          feverGauge = 0;
+          feverTime = 0;
+          spawnTimer = 0;
+          shotCooldownTimer = 0;
+          targetIndex = undefined;
+          targetTimer = 0;
+          kills = 0;
+          correctHits = 0;
+          wrongHits = 0;
+          escapedTargets = 0;
+          pointerX = WIDTH / 2;
+          keyboardLeft = false;
+          keyboardRight = false;
+
+          setTargetFont();
+          updateHud();
+        }
+
+        function startGame(nextMode) {
+          initAudio();
+          resetGame(nextMode);
+
+          state = "playing";
+          startOverlay.classList.add("sf-hidden");
+          resultOverlay.classList.add("sf-hidden");
+          game.focus();
+
+          startBgm();
+
+          lastTime = performance.now();
+
+          if (!rafId) {
+            rafId = requestAnimationFrame(loop);
+          }
+        }
+
+        function endGame() {
+          state = "result";
+          stopBgm();
+          showResult();
+        }
+
+        function updateHud() {
+          var comboPercent = clamp(combo / 12 * 100, 0, 100);
+          var killPercent = clamp(kills / 25 * 100, 0, 100);
+
+          scoreEl.textContent = String(score);
+          comboEl.textContent = String(combo);
+          timeEl.textContent = Math.max(0, timeLeft).toFixed(1);
+          hpEl.textContent = "♥".repeat(Math.max(0, hp)) + "♡".repeat(Math.max(0, 5 - hp));
+
+          gaugeEl.style.width = clamp(feverGauge, 0, 100) + "%";
+          comboMiniBarEl.style.width = comboPercent + "%";
+          comboBarEl.style.width = comboPercent + "%";
+          killBarEl.style.width = killPercent + "%";
+
+          comboNumberEl.textContent = combo + " / 12";
+          killNumberEl.textContent = kills + " / 25";
+
+          mission1El.textContent = (kills >= 25 ? "☑" : "□") + " ターゲットを25体撃破";
+          mission2El.textContent = (maxCombo >= 12 ? "☑" : "□") + " 12コンボ達成";
+          mission3El.textContent = (hp >= 3 ? "☑" : "□") + " HP3以上で生存";
+        }
+
+        function spawnEnemy() {
+          var config = MODE_CONFIG[mode];
+          var isCorrect = Math.random() < config.correctRate;
+          var fontIndex;
+
+          if (isCorrect) {
+            fontIndex = targetIndex;
+          } else {
+            fontIndex = Math.floor(Math.random() * FONT_BANK.length);
+
+            while (fontIndex === targetIndex && FONT_BANK.length > 1) {
+              fontIndex = Math.floor(Math.random() * FONT_BANK.length);
+            }
+          }
+
+          var size = 38 + Math.random() * 20;
+          var speed = (52 + Math.random() * 42) * config.enemySpeed;
+
+          enemies.push({
+            x: 44 + Math.random() * (WIDTH - 88),
+            y: -46,
+            vy: speed,
+            size: size,
+            char: randomItem(CHARS),
+            fontIndex: fontIndex,
+            fontSpec: FONT_BANK[fontIndex],
+            isCorrect: isCorrect,
+            angle: (Math.random() - 0.5) * 0.12,
+            wobble: Math.random() * Math.PI * 2
+          });
+        }
+
+        function shoot() {
+          var config = MODE_CONFIG[mode];
+
+          if (state !== "playing") {
+            return;
+          }
+
+          if (shotCooldownTimer > 0) {
+            return;
+          }
+
+          initAudio();
+
+          bullets.push({
+            x: player.x,
+            y: player.y - 28,
+            vy: -620,
+            r: 4
+          });
+
+          shotCooldownTimer = feverTime > 0 ? config.shotCooldown * 0.55 : config.shotCooldown;
+          playTone("shoot");
+        }
+
+        function damagePlayer(amount) {
+          if (player.invincible > 0 || state !== "playing") {
+            return;
+          }
+
+          hp -= amount;
+          player.invincible = 1.0;
+          combo = 0;
+
+          playTone("damage");
+          createParticles(player.x, player.y, "#ff6b8a", 18);
+
+          if (hp <= 0) {
+            hp = 0;
+            endGame();
+          }
+        }
+
+        function createParticles(x, y, color, count) {
+          for (var i = 0; i < count; i += 1) {
+            particles.push({
+              x: x,
+              y: y,
+              vx: (Math.random() - 0.5) * 180,
+              vy: (Math.random() - 0.5) * 180,
+              life: 0.45 + Math.random() * 0.35,
+              maxLife: 0.8,
+              color: color,
+              r: 2 + Math.random() * 3
+            });
+          }
+        }
+
+        function counterAttack(enemy) {
+          var dx = player.x - enemy.x;
+          var dy = player.y - enemy.y;
+          var len = Math.max(1, Math.sqrt(dx * dx + dy * dy));
+          var speed = 230;
+
+          enemyBullets.push({
+            x: enemy.x,
+            y: enemy.y,
+            vx: dx / len * speed,
+            vy: dy / len * speed,
+            r: 6
+          });
+        }
+
+        function hitCorrectEnemy(enemy) {
+          var feverBonus = feverTime > 0 ? 2 : 1;
+
+          correctHits += 1;
+          kills += 1;
+          combo += 1;
+          maxCombo = Math.max(maxCombo, combo);
+          feverGauge = clamp(feverGauge + 9, 0, 100);
+
+          score += Math.round((120 + combo * 12) * feverBonus);
+
+          playTone("correct");
+
+          if (feverGauge >= 100 && feverTime <= 0) {
+            feverGauge = 0;
+            feverTime = 8;
+            playTone("fever");
+            createParticles(player.x, player.y - 30, "#fff06a", 42);
+          }
+
+          createParticles(enemy.x, enemy.y, feverTime > 0 ? "#fff06a" : "#5ee7ff", 20);
+        }
+
+        function hitWrongEnemy(enemy) {
+          wrongHits += 1;
+          score = Math.max(0, score - 80);
+          combo = 0;
+          feverGauge = Math.max(0, feverGauge - 18);
+
+          playTone("wrong");
+          counterAttack(enemy);
+          createParticles(enemy.x, enemy.y, "#ff6b8a", 18);
+        }
+
+        function bulletHitsEnemyFont(bullet, enemy) {
+          var cos = Math.cos(enemy.angle);
+          var sin = Math.sin(enemy.angle);
+          var dx = bullet.x - enemy.x;
+          var dy = bullet.y - enemy.y;
+          var localX = dx * cos + dy * sin;
+          var localY = -dx * sin + dy * cos;
+
+          var size = Math.ceil(enemy.size * 2.8);
+          var center = Math.floor(size / 2);
+          var sampleRadius = Math.ceil(bullet.r + 1);
+          var sampleX = Math.round(center + localX);
+          var sampleY = Math.round(center + localY);
+
+          if (
+            sampleX < sampleRadius ||
+            sampleX >= size - sampleRadius ||
+            sampleY < sampleRadius ||
+            sampleY >= size - sampleRadius
+          ) {
+            return false;
+          }
+
+          hitCanvas.width = size;
+          hitCanvas.height = size;
+
+          hitCtx.clearRect(0, 0, size, size);
+          hitCtx.save();
+          hitCtx.fillStyle = "#ffffff";
+          hitCtx.textAlign = "center";
+          hitCtx.textBaseline = "middle";
+          hitCtx.font = buildFont(enemy.size, enemy.fontSpec);
+          hitCtx.fillText(enemy.char, center, center);
+          hitCtx.restore();
+
+          var startX = sampleX - sampleRadius;
+          var startY = sampleY - sampleRadius;
+          var area = sampleRadius * 2 + 1;
+          var imageData = hitCtx.getImageData(startX, startY, area, area).data;
+
+          for (var y = 0; y < area; y += 1) {
+            for (var x = 0; x < area; x += 1) {
+              var relX = x - sampleRadius;
+              var relY = y - sampleRadius;
+
+              if (relX * relX + relY * relY <= sampleRadius * sampleRadius) {
+                var alpha = imageData[(y * area + x) * 4 + 3];
+
+                if (alpha > 32) {
+                  return true;
+                }
+              }
+            }
+          }
+
+          return false;
+        }
+
+        function update(dt) {
+          var config = MODE_CONFIG[mode];
+
+          timeLeft -= dt;
+
+          if (timeLeft <= 0) {
+            timeLeft = 0;
+            endGame();
+            return;
+          }
+
+          if (player.invincible > 0) {
+            player.invincible -= dt;
+          }
+
+          if (shotCooldownTimer > 0) {
+            shotCooldownTimer -= dt;
+          }
+
+          if (feverTime > 0) {
+            feverTime -= dt;
+
+            if (feverTime <= 0) {
+              feverTime = 0;
+            }
+          }
+
+          targetTimer -= dt;
+
+          if (targetTimer <= 0) {
+            setTargetFont();
+          }
+
+          if (keyboardLeft) {
+            pointerX -= 420 * dt;
+          }
+
+          if (keyboardRight) {
+            pointerX += 420 * dt;
+          }
+
+          pointerX = clamp(pointerX, 36, WIDTH - 36);
+          player.x += (pointerX - player.x) * Math.min(1, 14 * dt);
+
+          spawnTimer -= dt;
+
+          var actualSpawn = feverTime > 0 ? config.spawnBase * 0.72 : config.spawnBase;
+
+          if (spawnTimer <= 0) {
+            spawnEnemy();
+            spawnTimer = actualSpawn * (0.72 + Math.random() * 0.56);
+          }
+
+          for (var i = bullets.length - 1; i >= 0; i -= 1) {
+            bullets[i].y += bullets[i].vy * dt;
+
+            if (bullets[i].y < -20) {
+              bullets.splice(i, 1);
+            }
+          }
+
+          for (var e = enemies.length - 1; e >= 0; e -= 1) {
+            var enemy = enemies[e];
+            var slow = feverTime > 0 ? 0.82 : 1;
+
+            enemy.y += enemy.vy * slow * dt;
+            enemy.wobble += dt * 3;
+            enemy.x += Math.sin(enemy.wobble) * 12 * dt;
+
+            if (enemy.y > HEIGHT + 44) {
+              if (enemy.isCorrect) {
+                escapedTargets += 1;
+              }
+
+              enemies.splice(e, 1);
+              continue;
+            }
+
+            for (var b = bullets.length - 1; b >= 0; b -= 1) {
+              var bullet = bullets[b];
+
+              if (bulletHitsEnemyFont(bullet, enemy)) {
+                bullets.splice(b, 1);
+                enemies.splice(e, 1);
+
+                if (enemy.isCorrect) {
+                  hitCorrectEnemy(enemy);
+                } else {
+                  hitWrongEnemy(enemy);
+                }
+
+                break;
+              }
+            }
+          }
+
+          for (var eb = enemyBullets.length - 1; eb >= 0; eb -= 1) {
+            var shot = enemyBullets[eb];
+
+            shot.x += shot.vx * dt;
+            shot.y += shot.vy * dt;
+
+            if (
+              shot.x < -30 ||
+              shot.x > WIDTH + 30 ||
+              shot.y < -30 ||
+              shot.y > HEIGHT + 30
+            ) {
+              enemyBullets.splice(eb, 1);
+              continue;
+            }
+
+            var pdx = shot.x - player.x;
+            var pdy = shot.y - player.y;
+
+            if (pdx * pdx + pdy * pdy < 28 * 28) {
+              enemyBullets.splice(eb, 1);
+              damagePlayer(1);
+            }
+          }
+
+          for (var p = particles.length - 1; p >= 0; p -= 1) {
+            var particle = particles[p];
+
+            particle.x += particle.vx * dt;
+            particle.y += particle.vy * dt;
+            particle.vx *= 0.98;
+            particle.vy *= 0.98;
+            particle.life -= dt;
+
+            if (particle.life <= 0) {
+              particles.splice(p, 1);
+            }
+          }
+
+          updateHud();
+        }
+
+        function drawBackground() {
+          ctx.clearRect(0, 0, WIDTH, HEIGHT);
+
+          var gradient = ctx.createLinearGradient(0, 0, 0, HEIGHT);
+          gradient.addColorStop(0, "#081225");
+          gradient.addColorStop(1, "#02040a");
+
+          ctx.fillStyle = gradient;
+          ctx.fillRect(0, 0, WIDTH, HEIGHT);
+
+          ctx.save();
+          ctx.globalAlpha = 0.22;
+          ctx.strokeStyle = "#7fdcff";
+          ctx.lineWidth = 1;
+
+          for (var y = 40; y < HEIGHT; y += 40) {
+            ctx.beginPath();
+            ctx.moveTo(0, y);
+            ctx.lineTo(WIDTH, y);
+            ctx.stroke();
+          }
+
+          for (var x = 40; x < WIDTH; x += 40) {
+            ctx.beginPath();
+            ctx.moveTo(x, 0);
+            ctx.lineTo(x, HEIGHT);
+            ctx.stroke();
+          }
+
+          ctx.restore();
+
+          if (feverTime > 0) {
+            ctx.save();
+            ctx.globalAlpha = 0.18 + Math.sin(performance.now() / 80) * 0.04;
+            ctx.fillStyle = "#fff06a";
+            ctx.fillRect(0, 0, WIDTH, HEIGHT);
+            ctx.restore();
+          }
+        }
+
+        function drawPlayer() {
+          ctx.save();
+          ctx.translate(player.x, player.y);
+
+          if (player.invincible > 0 && Math.floor(player.invincible * 18) % 2 === 0) {
+            ctx.globalAlpha = 0.35;
+          }
+
+          ctx.fillStyle = "#ff6fb1";
+          ctx.beginPath();
+          ctx.ellipse(0, 0, 30, 20, 0, 0, Math.PI * 2);
+          ctx.fill();
+
+          ctx.fillStyle = "#ffd1e5";
+
+          for (var i = -2; i <= 2; i += 1) {
+            ctx.beginPath();
+            ctx.ellipse(i * 10, 18, 5, 14, 0, 0, Math.PI * 2);
+            ctx.fill();
+          }
+
+          ctx.fillStyle = "#111";
+          ctx.beginPath();
+          ctx.arc(-9, -4, 4, 0, Math.PI * 2);
+          ctx.arc(9, -4, 4, 0, Math.PI * 2);
+          ctx.fill();
+
+          ctx.strokeStyle = "#ffffff";
+          ctx.lineWidth = 3;
+          ctx.beginPath();
+          ctx.moveTo(0, -22);
+          ctx.lineTo(0, -36);
+          ctx.stroke();
+
+          ctx.restore();
+        }
+
+        function drawBullets() {
+          ctx.save();
+
+          bullets.forEach(function (bullet) {
+            ctx.fillStyle = feverTime > 0 ? "#fff06a" : "#7df9ff";
+            ctx.shadowColor = ctx.fillStyle;
+            ctx.shadowBlur = 12;
+            ctx.beginPath();
+            ctx.arc(bullet.x, bullet.y, bullet.r, 0, Math.PI * 2);
+            ctx.fill();
+          });
+
+          enemyBullets.forEach(function (shot) {
+            ctx.fillStyle = "#ff4c7d";
+            ctx.shadowColor = "#ff4c7d";
+            ctx.shadowBlur = 12;
+            ctx.beginPath();
+            ctx.arc(shot.x, shot.y, shot.r, 0, Math.PI * 2);
+            ctx.fill();
+          });
+
+          ctx.restore();
+        }
+
+        function drawEnemies() {
+          var config = MODE_CONFIG[mode];
+
+          enemies.forEach(function (enemy) {
+            ctx.save();
+            ctx.translate(enemy.x, enemy.y);
+            ctx.rotate(enemy.angle);
+            ctx.textAlign = "center";
+            ctx.textBaseline = "middle";
+            ctx.font = buildFont(enemy.size, enemy.fontSpec);
+
+            ctx.shadowBlur = 0;
+            ctx.shadowColor = "transparent";
+
+            if (enemy.isCorrect && config.hint === "strong") {
+              ctx.fillStyle = "#ffe66b";
+              ctx.shadowColor = "#ffe66b";
+              ctx.shadowBlur = 14;
+            } else if (enemy.isCorrect && config.hint === "soft") {
+              ctx.fillStyle = "#fff7ca";
+              ctx.shadowColor = "#ffe66b";
+              ctx.shadowBlur = 8;
+            } else {
+              ctx.fillStyle = "#ffffff";
+            }
+
+            ctx.fillText(enemy.char, 0, 0);
+
+            if (enemy.isCorrect && config.hint === "strong") {
+              ctx.font = "700 15px system-ui, sans-serif";
+              ctx.fillStyle = "#ffffff";
+              ctx.shadowBlur = 4;
+              ctx.fillText("★", enemy.size * 0.42, -enemy.size * 0.42);
+            }
+
+            if (enemy.fontSpec.name === "ドット風") {
+              ctx.globalAlpha = 0.32;
+              ctx.strokeStyle = "#ffffff";
+              ctx.lineWidth = 1;
+              ctx.strokeRect(
+                -enemy.size * 0.32,
+                -enemy.size * 0.36,
+                enemy.size * 0.64,
+                enemy.size * 0.72
+              );
+            }
+
+            ctx.restore();
+          });
+        }
+
+        function drawParticles() {
+          particles.forEach(function (particle) {
+            ctx.save();
+            ctx.globalAlpha = clamp(particle.life / particle.maxLife, 0, 1);
+            ctx.fillStyle = particle.color;
+            ctx.beginPath();
+            ctx.arc(particle.x, particle.y, particle.r, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.restore();
+          });
+        }
+
+        function drawCenterMessages() {
+          if (feverTime > 0) {
+            ctx.save();
+            ctx.textAlign = "center";
+            ctx.textBaseline = "middle";
+            ctx.font = "900 34px system-ui, sans-serif";
+            ctx.fillStyle = "rgba(255, 240, 106, 0.9)";
+            ctx.shadowColor = "#fff06a";
+            ctx.shadowBlur = 18;
+            ctx.fillText("FEVER", WIDTH / 2, 104);
+            ctx.restore();
+          }
+
+          if (state === "playing" && shotCooldownTimer > 0) {
+            var config = MODE_CONFIG[mode];
+            var ratio = 1 - clamp(shotCooldownTimer / config.shotCooldown, 0, 1);
+
+            ctx.save();
+            ctx.fillStyle = "rgba(255, 255, 255, 0.28)";
+            ctx.fillRect(WIDTH - 142, HEIGHT - 24, 118, 6);
+            ctx.fillStyle = "#ffe66b";
+            ctx.fillRect(WIDTH - 142, HEIGHT - 24, 118 * ratio, 6);
+            ctx.restore();
+          }
+        }
+
+        function draw() {
+          drawBackground();
+          drawEnemies();
+          drawBullets();
+          drawParticles();
+          drawPlayer();
+          drawCenterMessages();
+        }
+
+        function loop(now) {
+          var dt = Math.min(0.033, (now - lastTime) / 1000);
+          lastTime = now;
+
+          if (state === "playing") {
+            update(dt);
+          }
+
+          draw();
+
+          if (state === "playing") {
+            rafId = requestAnimationFrame(loop);
+          } else {
+            rafId = 0;
+          }
+        }
+
+        function showResult() {
+          updateHud();
+
+          var totalHits = correctHits + wrongHits;
+          var accuracy = totalHits > 0 ? Math.round(correctHits / totalHits * 100) : 0;
+          var cleared = 0;
+
+          if (kills >= 25) {
+            cleared += 1;
+          }
+
+          if (maxCombo >= 12) {
+            cleared += 1;
+          }
+
+          if (hp >= 3) {
+            cleared += 1;
+          }
+
+          resultBody.innerHTML =
+            '<p class="sf-subtitle">' +
+              MODE_CONFIG[mode].label +
+              'モード / ミッション達成 ' +
+              cleared +
+              '/3</p>' +
+            '<div class="sf-result-grid">' +
+              '<div class="sf-result-item"><strong>Score</strong><br>' + score + '</div>' +
+              '<div class="sf-result-item"><strong>Max Combo</strong><br>' + maxCombo + '</div>' +
+              '<div class="sf-result-item"><strong>正解撃破数</strong><br>' + kills + '</div>' +
+              '<div class="sf-result-item"><strong>正解率</strong><br>' + accuracy + '%</div>' +
+              '<div class="sf-result-item"><strong>残りHP</strong><br>' + hp + '</div>' +
+              '<div class="sf-result-item"><strong>見逃した正解</strong><br>' + escapedTargets + '</div>' +
+            '</div>' +
+            '<div class="sf-adbox">' +
+              '<strong>告知枠</strong><br>' +
+              'ここにイベント案内、制作実績、SNS誘導、広告文などを入れられます。' +
+            '</div>';
+
+          resultOverlay.classList.remove("sf-hidden");
+        }
+
+        function pointerToCanvasX(event) {
+          var rect = canvas.getBoundingClientRect();
+          var clientX = event.clientX;
+
+          if (event.touches && event.touches.length > 0) {
+            clientX = event.touches[0].clientX;
+          }
+
+          return clamp((clientX - rect.left) * (WIDTH / rect.width), 36, WIDTH - 36);
+        }
+
+        canvas.addEventListener("pointerdown", function (event) {
+          if (state !== "playing") {
+            return;
+          }
+
+          game.focus();
+          pointerX = pointerToCanvasX(event);
+          shoot();
+        });
+
+        canvas.addEventListener("pointermove", function (event) {
+          if (state !== "playing") {
+            return;
+          }
+
+          pointerX = pointerToCanvasX(event);
+        });
+
+        canvas.addEventListener("touchmove", function (event) {
+          if (state !== "playing") {
+            return;
+          }
+
+          event.preventDefault();
+          pointerX = pointerToCanvasX(event);
+        }, {
+          passive: false
+        });
+
+        volumeRange.addEventListener("input", function () {
+          initAudio();
+          setVolume(Number(volumeRange.value) / 100);
+        });
+
+        volumeRangeStart.addEventListener("input", function () {
+          initAudio();
+          setVolume(Number(volumeRangeStart.value) / 100);
+        });
+
+        bgmButton.addEventListener("click", function () {
+          initAudio();
+          bgmEnabled = !bgmEnabled;
+          updateBgmButton();
+
+          if (state === "playing") {
+            if (bgmEnabled) {
+              startBgm();
+            } else {
+              stopBgm();
+            }
+          }
+        });
+
+        root.querySelectorAll("[data-sf-start]").forEach(function (button) {
+          button.addEventListener("click", function () {
+            startGame(button.getAttribute("data-sf-start"));
+          });
+        });
+
+        retryButton.addEventListener("click", function () {
+          startGame(mode);
+        });
+
+        window.addEventListener("keydown", function (event) {
+          if (state !== "playing") {
+            return;
+          }
+
+          if (event.key === "ArrowLeft") {
+            keyboardLeft = true;
+            event.preventDefault();
+          }
+
+          if (event.key === "ArrowRight") {
+            keyboardRight = true;
+            event.preventDefault();
+          }
+
+          if (event.code === "Space") {
+            shoot();
+            event.preventDefault();
+          }
+        });
+
+        window.addEventListener("keyup", function (event) {
+          if (event.key === "ArrowLeft") {
+            keyboardLeft = false;
+          }
+
+          if (event.key === "ArrowRight") {
+            keyboardRight = false;
+          }
+        });
+
+        setVolume(0.55);
+        updateBgmButton();
+        resetGame("normal");
+        draw();
+      });
+    });
+    /* ]]> */
+  </script>
+</div>
