@@ -1499,15 +1499,15 @@
               '</a>' +
             '</div>' +
             '<div style="display:flex; gap:10px; justify-content:center; margin-top:16px;">' +
-              '<button class="sf-button sf-share-x" type="button" style="background:#0f1419; color:#fff; box-shadow:none;">Xでシェア</button>' +
+              '<button class="sf-button sf-share-x" type="button" style="background:#0f1419; color:#fff; border:2px solid #55e7ff; box-shadow:0 0 10px rgba(85,231,255,0.5);">Xでシェア</button>' +
               '<button class="sf-button sf-share-ig" type="button" style="background:linear-gradient(45deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888); color:#fff; box-shadow:none;">インスタ</button>' +
             '</div>';
 
           var shareXBtn = resultBody.querySelector(".sf-share-x");
           if (shareXBtn) {
             shareXBtn.addEventListener("click", function() {
-              var text = "フォントシューティング(" + MODE_CONFIG[mode].label + ")でスコア" + score + "を獲得！\n#フォントシューティング\n";
-              var url = window.location.href;
+              var text = "フォントシューティング v3.3(" + MODE_CONFIG[mode].label + ")でスコア" + score + "を獲得！\n#フォントシューティング\n";
+              var url = "https://wayoh.jp/font-shooting";
               var shareUrl = "https://twitter.com/intent/tweet?text=" + encodeURIComponent(text) + "&url=" + encodeURIComponent(url);
               window.open(shareUrl, "_blank");
             });
@@ -1516,7 +1516,7 @@
           var shareIgBtn = resultBody.querySelector(".sf-share-ig");
           if (shareIgBtn) {
             shareIgBtn.addEventListener("click", function() {
-              var text = "フォントシューティング(" + MODE_CONFIG[mode].label + ")でスコア" + score + "を獲得！\n#フォントシューティング";
+              var text = "フォントシューティング v3.3(" + MODE_CONFIG[mode].label + ")でスコア" + score + "を獲得！\nhttps://wayoh.jp/font-shooting\n#フォントシューティング";
               navigator.clipboard.writeText(text).then(function() {
                 alert("結果をクリップボードにコピーしました。\nInstagramを開いてペーストして投稿してください。");
                 window.open("https://www.instagram.com/", "_blank");
