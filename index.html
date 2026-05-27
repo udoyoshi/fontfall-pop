@@ -1503,7 +1503,10 @@
           var shareXBtn = resultBody.querySelector(".sf-share-x");
           if (shareXBtn) {
             shareXBtn.addEventListener("click", function() {
-              var text = "フォントシューティング v3.3(" + MODE_CONFIG[mode].label + ")でスコア" + score + "を獲得！\n#フォントシューティング\n";
+             // スクリプト内の該当箇所（1509行目、1519行目付近）
+// ここを "v3.3" から "v3.4" に書き換えてください
+
+var text = "フォントシューティング v3.4(" + MODE_CONFIG[mode].label + ")でスコア" + score + "を獲得！\n#フォントシューティング\n";
               var url = "https://wayoh.jp/font-shooting";
               var shareUrl = "https://twitter.com/intent/tweet?text=" + encodeURIComponent(text) + "&url=" + encodeURIComponent(url);
               window.open(shareUrl, "_blank");
@@ -1513,7 +1516,7 @@
           var shareIgBtn = resultBody.querySelector(".sf-share-ig");
           if (shareIgBtn) {
             shareIgBtn.addEventListener("click", function() {
-              var text = "フォントシューティング v3.3(" + MODE_CONFIG[mode].label + ")でスコア" + score + "を獲得！\nhttps://wayoh.jp/font-shooting\n#フォントシューティング";
+              var text = "フォントシューティング v3.4(" + MODE_CONFIG[mode].label + ")でスコア" + score + "を獲得！\nhttps://wayoh.jp/font-shooting\n#フォントシューティング";
               navigator.clipboard.writeText(text).then(function() {
                 alert("結果をクリップボードにコピーしました。\nInstagramを開いてペーストして投稿してください。");
                 window.open("https://www.instagram.com/", "_blank");
